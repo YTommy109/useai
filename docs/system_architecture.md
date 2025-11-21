@@ -8,9 +8,11 @@
 *   **Web フレームワーク**: FastAPI
 *   **フロントエンド**: Jinja2 (テンプレート), HTMX (動的インタラクション), Pico CSS (スタイリング)
 *   **データベース**: SQLite
+*   **ORM**: SQLModel
 *   **DB マイグレーション**: Atlas
 *   **LLM オーケストレーション**: LangChain
 *   **開発ツール**:
+    *   **パッケージ管理**: uv
     *   **タスクランナー**: just
     *   **Lint/Format**: ruff, mypy
     *   **テスト**: pytest
