@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国選択</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body>
+    <main class="container">
+        <!-- 入力エリア -->
+        <div class="grid">
+            <!-- 国選択 -->
+            <div>
+                <h2>国を選択</h2>
+                <div class="scrollable-list">
+                    <form hx-post="/selected" hx-trigger="change" hx-target="#selected-countries">
+                        {% for country in countries %}
+                        <label>
+                            <input type="checkbox" name="countries" value="{{ country }}">
+                            {{ country }}
+                        </label>
+                        {% endfor %}
+                    </form>
+                </div>
+            </div>
+            <!-- 法規選択 -->
+            <div>
+                <h2>法規を選択</h2>
+                <div class="scrollable-list">
+                    <form hx-post="/selected_regulations" hx-trigger="change" hx-target="#selected-regulations">
+                        {% for regulation in regulations %}
+                        <label>
+                            <input type="checkbox" name="regulations" value="{{ regulation }}">
+                            {{ regulation }}
+                        </label>
+                        {% endfor %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- 出力エリア -->
+        <div>
+            <h2>選択結果</h2>
+            <div class="grid">
+                <div>
+                    <h3>国</h3>
+                    <div id="selected-countries"></div>
+                </div>
+                <div>
+                    <h3>法規</h3>
+                    <div id="selected-regulations"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .scrollable-list {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--pico-muted-border-color);
+            padding: 1rem;
+            border-radius: var(--pico-border-radius);
+        }
+    </style>
+</body>
+
+</html>
