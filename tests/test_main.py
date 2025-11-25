@@ -70,7 +70,7 @@ async def test_select_countries(client: TestClient):
     payload = {'countries': ['Test Country A']}
 
     # Act
-    response = client.post('/selected', data=payload)
+    response = client.post('/selected_countries', data=payload)
 
     # Assert
     assert response.status_code == 200

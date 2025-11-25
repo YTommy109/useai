@@ -64,7 +64,7 @@ async def read_root(request: Request, session: AsyncSession = Depends(get_sessio
     )
 
 
-@app.post('/selected', response_class=HTMLResponse)
+@app.post('/selected_countries', response_class=HTMLResponse)
 async def selected_countries(
     request: Request, countries: list[str] = Form(default=[])
 ) -> HTMLResponse:

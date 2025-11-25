@@ -17,7 +17,7 @@
             <div>
                 <h2>国を選択</h2>
                 <div class="scrollable-list">
-                    <form hx-post="/selected" hx-trigger="change" hx-target="#selected-countries">
+                    <form hx-post="/selected_countries" hx-trigger="change" hx-target="#selected-countries">
                         {% for country in countries %}
                         <label>
                             <input type="checkbox" name="countries" value="{{ country }}">
