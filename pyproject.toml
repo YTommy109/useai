@@ -110,6 +110,7 @@ select = [
     "PD",     # pandas-vet（pandas最適化チェック）
     "PLR",    # pylint refactor（リファクタリング推奨）
     "TID252", # type: ignore禁止
+    "D",      # pydocstyle（ドキュメントスタイルチェック）
 ]
 
 ignore = [
@@ -121,7 +122,13 @@ ignore = [
     "S603",   # subprocess-without-shell-equals-true（セキュリティ上必要な場合あり）
     "FBT001", # Boolean positional arg in function definition（設定値で使用）
     "FBT002", # Boolean default value in function definition（フラグパラメータで使用）
+    "D100",   # Missing docstring in public module
+    "D104",   # Missing docstring in public package
+    "D415",   # First line should end with period (日本語の句点は認識されない)
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.format]
 quote-style = "single" # クォートスタイルの指定
@@ -168,6 +175,8 @@ max-statements = 15 # 関数内の文の最大数
     "T20",     # print文許可
     "DTZ",     # datetime関連許可
     "ERA001",  # コメントアウトコード許可
+    "D",       # docstring不要
+    "ANN",     # 型注釈不要
 ]
 "tests_e2e/**" = [
     "PLR2004", # マジックナンバー許可
@@ -180,12 +189,26 @@ max-statements = 15 # 関数内の文の最大数
     "T20",     # print文許可
     "DTZ",     # datetime関連許可
     "ERA001",  # コメントアウトコード許可
+    "D",       # docstring不要
+    "ANN",     # 型注釈不要
 ]
 "src/main.py" = [
     "PLC0415", # import文の位置制限緩和
+    "ARG001",  # 未使用引数許可 (FastAPI dependency injection)
+    "B008",    # Form() in defaults is FastAPI pattern
 ]
 "src/logger.py" = [
     "PLC0415", # import文の位置制限緩和
+]
+"src/db/engine.py" = [
+    "C901",    # init_db complexity is acceptable
+    "PLR0912", # init_db branches are acceptable
+    "PLR0915", # init_db statements are acceptable
+]
+"src/db/schema.py" = [
+    "T201",    # print is intentional for DDL output
+    "ARG001",  # dump function signature required by SQLAlchemy
+    "ANN401",  # Any types required for SQLAlchemy callback signature
 ]
 
 # =====================================
@@ -197,7 +220,7 @@ python_version = "3.12" # 対象Pythonバージョン
 strict = true           # 厳格モード有効
 show_error_codes = true # エラーコードを表示
 pretty = true           # 色付きで見やすいエラー表示
-exclude = ["ait"]
+exclude = ["ait", "tests"]
 enable_error_code = [
     "truthy-bool", "redundant-expr", "unused-awaitable", "ignore-without-code", "possibly-undefined"
 ] # 追加チェック有効化
@@ -261,4 +284,12 @@ exclude = [".venv"]
 
 [tool.vulture]
 exclude = ["src/config.py", "src/types/enums.py", "src/logger.py"]
-ignore_names = ["drop_params"]
+ignore_names = [
+    "drop_params",
+    "id",  # SQLModel フィールド
+    "multiparams",  # SQLAlchemy コールバック引数
+    "params",  # SQLAlchemy コールバック引数
+    "read_root",  # FastAPI ルート
+    "selected_countries",  # FastAPI ルート
+    "selected_regulations",  # FastAPI ルート
+]
