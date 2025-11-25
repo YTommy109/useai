@@ -137,3 +137,8 @@ ty:
 # HTMLドキュメント生成
 docs:
     pdoc app --html --output-dir docs
+
+# フロントエンドの依存関係をインストールしてアセットをコピー
+setup-assets:
+    pnpm install
+    pnpm run copy-assets
