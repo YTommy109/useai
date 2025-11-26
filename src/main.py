@@ -4,8 +4,6 @@
 およびライフサイクル管理を定義します。
 """
 
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Form, Request
@@ -14,28 +12,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.engine import get_session, init_db
+from src.db.engine import get_session
 from src.db.repository import CountryRepository, RegulationRepository
 from src.db.service import CountryService, RegulationService
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """アプリケーションのライフサイクルイベントを管理する。
-
-    起動時にデータベースを初期化します。
-
-    Args:
-        app: FastAPI アプリケーションインスタンス。
-
-    Yields:
-        None: 起動後、アプリケーションに制御を返します。
-    """
-    await init_db()
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title='UseAI',
+    description='国と法規を選択するアプリケーション',
+)
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 

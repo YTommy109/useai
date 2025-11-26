@@ -142,3 +142,30 @@ docs:
 setup-assets:
     pnpm install
     pnpm run copy-assets
+
+# データベースマイグレーション (Atlas)
+# just migrate apply      -> マイグレーションを適用
+# just migrate status     -> マイグレーション状態を確認
+# just migrate diff       -> スキーマの差分を確認
+migrate cmd='apply':
+    #!/usr/bin/env zsh
+    set -euo pipefail
+
+    case '{{cmd}}' in
+        'apply')
+            echo "Applying database migrations..."
+            atlas migrate apply --env local
+            ;;
+        'status')
+            echo "Checking migration status..."
+            atlas migrate status --env local
+            ;;
+        'diff')
+            echo "Checking schema diff..."
+            atlas schema diff --env local
+            ;;
+        *)
+            echo "Unknown migrate command: '{{cmd}}'. Available: 'apply', 'status', 'diff'"
+            exit 1
+            ;;
+    esac
