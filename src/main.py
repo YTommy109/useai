@@ -138,7 +138,7 @@ async def import_countries(
     service = CountryService(country_repo, session)
 
     try:
-        count = await service.import_from_csv(Path('config/countries.csv'))
+        count = await service.import_from_csv(Path('data/csv/countries.csv'))
         return HTMLResponse(str(count))
     except FileNotFoundError:
         return HTMLResponse('ファイルが見つかりません', status_code=404)
@@ -163,7 +163,7 @@ async def import_regulations(
     service = RegulationService(regulation_repo, session)
 
     try:
-        count = await service.import_from_csv(Path('config/regulations.csv'))
+        count = await service.import_from_csv(Path('data/csv/regulations.csv'))
         return HTMLResponse(str(count))
     except FileNotFoundError:
         return HTMLResponse('ファイルが見つかりません', status_code=404)

@@ -154,15 +154,15 @@ migrate cmd='apply':
     case '{{cmd}}' in
         'apply')
             echo "Applying database migrations..."
-            atlas migrate apply --env local
+            atlas migrate apply --env local --config config/atlas.hcl
             ;;
         'status')
             echo "Checking migration status..."
-            atlas migrate status --env local
+            atlas migrate status --env local --config config/atlas.hcl
             ;;
         'diff')
             echo "Checking schema diff..."
-            atlas schema diff --env local
+            atlas schema diff --env local --config config/atlas.hcl
             ;;
         *)
             echo "Unknown migrate command: '{{cmd}}'. Available: 'apply', 'status', 'diff'"

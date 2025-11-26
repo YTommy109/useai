@@ -8,6 +8,6 @@ data "external_schema" "sqlmodel" {
 
 env "local" {
   src = data.external_schema.sqlmodel.url
-  url = "sqlite://app.db"
+  url = "sqlite://../data/app.db"
   dev = "sqlite://file?mode=memory"
 }

@@ -1,2 +1,30 @@
-.testmondata
+# ユーザーデータ
+/data/
+!/data/README.md
 
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.testmondata
+*.coverage
+.coverage/
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
