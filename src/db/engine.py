@@ -44,7 +44,7 @@ async def init_db() -> None:
                 with open(csv_path, encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
-                        session.add(Country(name=row['name']))
+                        session.add(Country(name=row['name'], continent=row['continent']))
 
         # 規制が存在するかチェック
         result = await session.exec(select(Regulation))  # type: ignore[arg-type]

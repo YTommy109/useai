@@ -54,13 +54,13 @@ async def read_root(request: Request, session: AsyncSession = Depends(get_sessio
     country_repo = CountryRepository(session)
     regulation_repo = RegulationRepository(session)
 
-    countries = await country_repo.get_all_names()
+    grouped_countries = await country_repo.get_grouped_by_continent()
     regulations = await regulation_repo.get_all_names()
 
     return templates.TemplateResponse(
         request=request,
         name='index.html',
-        context={'countries': countries, 'regulations': regulations},
+        context={'grouped_countries': grouped_countries, 'regulations': regulations},
     )
 
 

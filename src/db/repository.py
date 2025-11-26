@@ -34,6 +34,23 @@ class CountryRepository:
         result = await self.session.exec(select(Country))
         return [c.name for c in result.all()]
 
+    async def get_grouped_by_continent(self) -> dict[str, list[str]]:
+        """大陸別にグループ化された国名を取得する。
+
+        Returns:
+            大陸名をキー、国名のリストを値とする辞書。
+        """
+        result = await self.session.exec(select(Country))
+        countries = result.all()
+
+        grouped: dict[str, list[str]] = {}
+        for country in countries:
+            if country.continent not in grouped:
+                grouped[country.continent] = []
+            grouped[country.continent].append(country.name)
+
+        return grouped
+
 
 class RegulationRepository:
     """Regulation エンティティのデータベース操作用リポジトリ。
