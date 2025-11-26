@@ -17,35 +17,14 @@
             <div>
                 <h2>国を選択</h2>
                 <div class="scrollable-list">
-                    <form hx-post="/selected_countries" hx-trigger="change" hx-target="#selected-countries">
-                        {% for continent, countries in grouped_countries.items() %}
-                        <details open>
-                            <summary>{{ continent }}</summary>
-                            <div style="padding-left: 1rem;">
-                                {% for country in countries %}
-                                <label>
-                                    <input type="checkbox" name="countries" value="{{ country }}">
-                                    {{ country }}
-                                </label>
-                                {% endfor %}
-                            </div>
-                        </details>
-                        {% endfor %}
-                    </form>
+                    {% include "components/country_selector.html" %}
                 </div>
             </div>
             <!-- 法規選択 -->
             <div>
                 <h2>法規を選択</h2>
                 <div class="scrollable-list">
-                    <form hx-post="/selected_regulations" hx-trigger="change" hx-target="#selected-regulations">
-                        {% for regulation in regulations %}
-                        <label>
-                            <input type="checkbox" name="regulations" value="{{ regulation }}">
-                            {{ regulation }}
-                        </label>
-                        {% endfor %}
-                    </form>
+                    {% include "components/regulation_selector.html" %}
                 </div>
             </div>
         </div>

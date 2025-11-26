@@ -1,0 +1,10 @@
+<div class="scrollable-list">
+    <form hx-post="/selected_regulations" hx-trigger="change" hx-target="#selected-regulations">
+        {% for regulation in regulations %}
+        <label>
+            <input type="checkbox" name="regulations" value="{{ regulation }}">
+            {{ regulation }}
+        </label>
+        {% endfor %}
+    </form>
+</div>
