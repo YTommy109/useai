@@ -1,7 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.pool import StaticPool
@@ -23,11 +22,11 @@ async def session_fixture():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session() as session:
         # Insert explicit test data
-        session.add(Country(name='Test Country A'))
-        session.add(Country(name='Test Country B'))
+        session.add(Country(name='Test Country A', continent='Asia'))
+        session.add(Country(name='Test Country B', continent='Europe'))
         session.add(Regulation(name='Test Regulation 1'))
         session.add(Regulation(name='Test Regulation 2'))
         await session.commit()

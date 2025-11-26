@@ -284,12 +284,16 @@ exclude = [".venv"]
 
 [tool.vulture]
 exclude = ["src/config.py", "src/types/enums.py", "src/logger.py"]
+ignore_decorators = [
+    "@app.get",
+    "@app.post",
+    "@app.put",
+    "@app.delete",
+    "@app.patch",
+]
 ignore_names = [
     "drop_params",
     "id",  # SQLModel フィールド
     "multiparams",  # SQLAlchemy コールバック引数
     "params",  # SQLAlchemy コールバック引数
-    "read_root",  # FastAPI ルート
-    "selected_countries",  # FastAPI ルート
-    "selected_regulations",  # FastAPI ルート
 ]
