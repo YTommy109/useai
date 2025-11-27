@@ -50,43 +50,29 @@ async def read_root(request: Request, session: AsyncSession = Depends(get_sessio
     )
 
 
-@app.post('/selected_countries', response_class=HTMLResponse)
-async def selected_countries(
-    request: Request, countries: list[str] = Form(default=[])
+@app.post('/generate_document', response_class=HTMLResponse)
+async def generate_document(
+    request: Request,
+    countries: list[str] = Form(default=[]),
+    regulations: list[str] = Form(default=[]),
 ) -> HTMLResponse:
-    """国選択フォームの送信を処理する。
+    """選択された国と規制に基づいて文書を生成する。
 
     Args:
         request: FastAPI リクエストオブジェクト。
         countries: 選択された国名のリスト。
-
-    Returns:
-        HTMLResponse: 選択された国を表示するレンダリングされたページ。
-    """
-    return templates.TemplateResponse(
-        request=request,
-        name='selected_items.html',
-        context={'items': countries},
-    )
-
-
-@app.post('/selected_regulations', response_class=HTMLResponse)
-async def selected_regulations(
-    request: Request, regulations: list[str] = Form(default=[])
-) -> HTMLResponse:
-    """規制選択フォームの送信を処理する。
-
-    Args:
-        request: FastAPI リクエストオブジェクト。
         regulations: 選択された規制名のリスト。
 
     Returns:
-        HTMLResponse: 選択された規制を表示するレンダリングされたページ。
+        HTMLResponse: 生成された文書を表示するレンダリングされたページ。
     """
+    # 国と規制を結合して表示用のリストを作成
+    items = countries + regulations
+
     return templates.TemplateResponse(
         request=request,
-        name='selected_items.html',
-        context={'items': regulations},
+        name='document.html',
+        context={'items': items},
     )
 
 
