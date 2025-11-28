@@ -5,8 +5,9 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.pool import StaticPool
 
+from src.db.engine import get_session
 from src.db.models import Country, Regulation
-from src.main import app, get_session
+from src.main import app
 
 # Async In-memory SQLite for testing
 DATABASE_URL = 'sqlite+aiosqlite:///'

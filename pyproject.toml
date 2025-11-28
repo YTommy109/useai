@@ -196,6 +196,8 @@ max-statements = 15 # 関数内の文の最大数
 ]
 "src/main.py" = [
     "PLC0415", # import文の位置制限緩和
+]
+"src/routers/**" = [
     "ARG001",  # 未使用引数許可 (FastAPI dependency injection)
     "B008",    # Form() in defaults is FastAPI pattern
 ]
@@ -301,6 +303,11 @@ ignore_decorators = [
     "@app.put",
     "@app.delete",
     "@app.patch",
+    "@router.get",
+    "@router.post",
+    "@router.put",
+    "@router.delete",
+    "@router.patch",
 ]
 ignore_names = [
     "drop_params",

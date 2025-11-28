@@ -7,8 +7,9 @@ from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.pool import StaticPool
 
+from src.db.engine import get_session
 from src.db.models import Country, Regulation
-from src.main import app, get_session
+from src.main import app
 
 # テスト用の非同期インメモリ SQLite
 DATABASE_URL = 'sqlite+aiosqlite:///'
@@ -68,23 +69,24 @@ async def test_import_countries(client: TestClient, session: AsyncSession):
     csv_content = 'name,continent\n新規国1,欧州\n新規国2,アジア'
 
     with (
-        patch('src.main.Path.exists', return_value=True),
+        patch('src.routers.admin.Path.exists', return_value=True),
         patch('builtins.open', mock_open(read_data=csv_content)),
     ):
         # Act
         response = client.post('/admin/import/countries')
 
-        # Assert
-        assert response.status_code == 200
-        assert response.text == '2'  # 更新後の件数が返される
+    # Assert
+    assert response.status_code == 200
+    assert response.text == '2'
 
-        # DBの内容を検証
-        result = await session.exec(select(Country))
-        countries = result.all()
-        assert len(countries) == 2
-        names = [c.name for c in countries]
-        assert '新規国1' in names
-        assert '新規国2' in names
+    # Verify database state
+    countries = await session.exec(select(Country))
+    results = countries.all()
+    assert len(results) == 2
+    assert results[0].name == '新規国1'
+    assert results[0].continent == '欧州'
+    assert results[1].name == '新規国2'
+    assert results[1].continent == 'アジア'
 
 
 @pytest.mark.asyncio
@@ -94,7 +96,7 @@ async def test_import_regulations(client: TestClient, session: AsyncSession):
     csv_content = 'name\n新規規制1\n新規規制2'
 
     with (
-        patch('src.main.Path.exists', return_value=True),
+        patch('src.routers.admin.Path.exists', return_value=True),
         patch('builtins.open', mock_open(read_data=csv_content)),
     ):
         # Act
