@@ -30,6 +30,7 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "sqlmodel>=0.0.16",
     "alembic>=1.17.2",
+    "taskipy>=1.14.1",
 ]
 
 [project.optional-dependencies]
@@ -307,3 +308,43 @@ ignore_names = [
     "multiparams",  # SQLAlchemy コールバック引数
     "params",  # SQLAlchemy コールバック引数
 ]
+
+# =====================================
+# taskipy設定
+# =====================================
+
+[tool.taskipy.tasks]
+# 開発サーバー
+dev = "uvicorn src.main:app --reload --port 8000"
+prod = "uvicorn src.main:app --host 0.0.0.0 --port 8000"
+
+# テスト
+test = "pytest --testmon"
+test-ut = "pytest --testmon -m 'not ci' tests"
+test-ci = "pytest --testmon -m 'ci' tests/ci"
+test-all = "pytest"
+coverage = "pytest --cov=app --cov-report=term-missing"
+
+# Lint/Format
+ruff = "ruff format . && ruff check --fix ."
+vulture = "vulture src"
+mypy = "mypy ."
+lint = "task ruff && task vulture && task mypy"
+
+# 依存関係管理
+sync = "uv sync --extra dev"
+sync-prod = "uv sync"
+
+# マイグレーション
+migrate-apply = "alembic upgrade head"
+migrate-history = "alembic history"
+migrate-downgrade = "alembic downgrade -1"
+
+# アセット管理
+download-assets = "python scripts/download_assets.py"
+
+# ドキュメント生成
+docs = "pdoc app --html --output-dir docs"
+
+# すべてのチェックとテスト
+test-all-checks = "task lint && task coverage"

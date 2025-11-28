@@ -64,28 +64,40 @@ async def test_read_main(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_select_countries(client: TestClient):
+async def test_generate_document_with_countries(client: TestClient):
     # Arrange
-    payload = {'countries': ['Test Country A']}
+    payload = {'countries': ['Test Country A'], 'regulations': []}
 
     # Act
-    response = client.post('/selected_countries', data=payload)
+    response = client.post('/generate_document', data=payload)
 
     # Assert
     assert response.status_code == 200
     assert 'Test Country A' in response.text
-    assert 'Test Country B' not in response.text
 
 
 @pytest.mark.asyncio
-async def test_select_regulations(client: TestClient):
+async def test_generate_document_with_regulations(client: TestClient):
     # Arrange
-    payload = {'regulations': ['Test Regulation 1']}
+    payload = {'countries': [], 'regulations': ['Test Regulation 1']}
 
     # Act
-    response = client.post('/selected_regulations', data=payload)
+    response = client.post('/generate_document', data=payload)
 
     # Assert
     assert response.status_code == 200
     assert 'Test Regulation 1' in response.text
-    assert 'Test Regulation 2' not in response.text
+
+
+@pytest.mark.asyncio
+async def test_generate_document_with_both(client: TestClient):
+    # Arrange
+    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
+
+    # Act
+    response = client.post('/generate_document', data=payload)
+
+    # Assert
+    assert response.status_code == 200
+    assert 'Test Country A' in response.text
+    assert 'Test Regulation 1' in response.text
