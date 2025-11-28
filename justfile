@@ -143,29 +143,38 @@ setup-assets:
     pnpm install
     pnpm run copy-assets
 
-# データベースマイグレーション (Atlas)
-# just migrate apply      -> マイグレーションを適用
-# just migrate status     -> マイグレーション状態を確認
-# just migrate diff       -> スキーマの差分を確認
-migrate cmd='apply':
+# データベースマイグレーション (Alembic)
+# just migrate apply      -> マイグレーションを適用 (upgrade head)
+# just migrate revision "message" -> 新しいリビジョンを作成 (autogenerate)
+# just migrate history    -> 履歴を表示
+# just migrate downgrade  -> 1つ前のリビジョンに戻す
+migrate cmd='apply' args='':
     #!/usr/bin/env zsh
     set -euo pipefail
 
     case '{{cmd}}' in
         'apply')
             echo "Applying database migrations..."
-            atlas migrate apply --env local --config config/atlas.hcl
+            uv run alembic upgrade head
             ;;
-        'status')
-            echo "Checking migration status..."
-            atlas migrate status --env local --config config/atlas.hcl
+        'revision')
+            if [[ '{{args}}' == '' ]]; then
+                echo "Error: Message required for revision. Usage: just migrate revision 'message'"
+                exit 1
+            fi
+            echo "Generating new migration revision..."
+            uv run alembic revision --autogenerate -m "{{args}}"
             ;;
-        'diff')
-            echo "Checking schema diff..."
-            atlas schema diff --env local --config config/atlas.hcl
+        'history')
+            echo "Checking migration history..."
+            uv run alembic history
+            ;;
+        'downgrade')
+            echo "Downgrading database..."
+            uv run alembic downgrade -1
             ;;
         *)
-            echo "Unknown migrate command: '{{cmd}}'. Available: 'apply', 'status', 'diff'"
+            echo "Unknown migrate command: '{{cmd}}'. Available: 'apply', 'revision', 'history', 'downgrade'"
             exit 1
             ;;
     esac

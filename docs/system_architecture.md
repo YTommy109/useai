@@ -9,7 +9,7 @@
 *   **フロントエンド**: Jinja2 (テンプレート), HTMX (動的インタラクション), Pico CSS (スタイリング)
 *   **データベース**: SQLite
 *   **ORM**: SQLModel
-*   **DB マイグレーション**: Atlas
+*   **DB マイグレーション**: Alembic
 *   **LLM オーケストレーション**: LangChain
 *   **開発ツール**:
     *   **パッケージ管理**: uv

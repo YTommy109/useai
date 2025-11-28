@@ -1,6 +1,8 @@
 # 0002 – Adopt Atlas for SQLite Migration
 
-- ステータス: 承認
+## ステータス
+
+置き換え (Superseded) - [ADR-0004](0004-deprecate-atlas-adopt-alembic.md) によって置き換えられました。
 - 日付: 2025-11-21
 
 ## 背景
