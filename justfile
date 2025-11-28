@@ -138,10 +138,9 @@ ty:
 docs:
     pdoc app --html --output-dir docs
 
-# フロントエンドの依存関係をインストールしてアセットをコピー
-setup-assets:
-    pnpm install
-    pnpm run copy-assets
+# フロントエンドアセットをダウンロード
+download-assets:
+    python scripts/download_assets.py
 
 # データベースマイグレーション (Alembic)
 # just migrate apply      -> マイグレーションを適用 (upgrade head)

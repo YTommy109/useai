@@ -211,6 +211,15 @@ max-statements = 15 # 関数内の文の最大数
     "ARG001",  # dump function signature required by SQLAlchemy
     "ANN401",  # Any types required for SQLAlchemy callback signature
 ]
+"migrations/**" = [
+    "ERA001",  # コメントアウトコード許可 (Alembic generated comments)
+    "D103",    # docstring不要
+    "ANN",     # 型注釈不要
+]
+"scripts/**" = [
+    "T201",    # print文許可 (CLI scripts)
+    "S310",    # URL open許可 (download scripts)
+]
 
 # =====================================
 # mypy設定
