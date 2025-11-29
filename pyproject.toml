@@ -314,6 +314,7 @@ ignore_names = [
     "id",  # SQLModel フィールド
     "multiparams",  # SQLAlchemy コールバック引数
     "params",  # SQLAlchemy コールバック引数
+    "title",  # openpyxl ワークシート属性
 ]
 
 # =====================================

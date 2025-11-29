@@ -1,5 +1,15 @@
 <div style="margin-top: 2rem;">
-    <h3>生成結果データ</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="margin: 0;">生成結果データ</h3>
+        <div>
+            <a href="/download_csv" download style="margin-right: 0.5rem;">
+                <button type="button">CSV ダウンロード</button>
+            </a>
+            <a href="/download_excel" download>
+                <button type="button">Excel ダウンロード</button>
+            </a>
+        </div>
+    </div>
     <div
         style="overflow-x: auto; overflow-y: auto; max-height: 500px; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius);">
         <table class="striped" style="margin-bottom: 0;">
