@@ -62,6 +62,7 @@ async def test_read_main(client: TestClient):
     assert 'Test Country B' in response.text
     assert 'Test Regulation 1' in response.text
     assert 'Test Regulation 2' in response.text
+    assert 'id="execute-button-container"' in response.text  # 実行ボタンコンテナの確認
 
 
 @pytest.mark.asyncio
@@ -102,3 +103,30 @@ async def test_generate_document_with_both(client: TestClient):
     assert response.status_code == 200
     assert 'Test Country A' in response.text
     assert 'Test Regulation 1' in response.text
+    assert 'ゴール:' in response.text  # ドキュメント部分の確認
+    assert '項目1' not in response.text  # テーブル部分は含まれないこと
+    assert 'disabled' not in response.text  # 選択されているのでボタンは有効
+
+
+@pytest.mark.asyncio
+async def test_generate_document_empty(client: TestClient):
+    # Arrange
+    payload = {'countries': [], 'regulations': []}
+
+    # Act
+    response = client.post('/generate_document', data=payload)
+
+    # Assert
+    assert response.status_code == 200
+    assert 'disabled' in response.text  # 何も選択されていないのでボタンは無効
+
+
+@pytest.mark.asyncio
+async def test_generate_table(client: TestClient):
+    # Act
+    response = client.post('/generate_table')
+
+    # Assert
+    assert response.status_code == 200
+    assert '生成結果データ' in response.text
+    assert '項目1' in response.text

@@ -1,13 +1,26 @@
-<div class="pico-background-slate-50"
-    style="white-space: pre-wrap; border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: var(--pico-border-radius);">
-    ゴール: これはダミーのプロンプトです。
+<details style="margin-bottom: 1rem;">
+    <summary>プロンプト詳細（デバッグ用）</summary>
+    <div class="pico-background-slate-50"
+        style="white-space: pre-wrap; border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: var(--pico-border-radius); color: var(--pico-muted-color);">
+        ゴール: これはダミーのプロンプトです。
 
-    ヘッダー部: プロンプトヘッダー部です。
+        ヘッダー部: プロンプトヘッダー部です。
 
-    条件部:
-    {% for item in items %}
-    - {{ item }}
-    {% endfor %}
+        条件部:
+        {% for country in selected_countries %}
+        - {{ country }}
+        {% endfor %}
+        {% for regulation in selected_regulations %}
+        - {{ regulation }}
+        {% endfor %}
 
-    詳細: ここは詳細が入ります。
+        詳細: ここは詳細が入ります。
+    </div>
+</details>
+
+<div id="execute-button-container" hx-swap-oob="true">
+    <button hx-post="/generate_table" hx-target="#table-result" hx-swap="innerHTML" {% if not is_executable %}disabled{%
+        endif %}>
+        実行
+    </button>
 </div>

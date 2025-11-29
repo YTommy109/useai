@@ -52,11 +52,42 @@ async def generate_document(
     Returns:
         HTMLResponse: 生成された文書を表示するレンダリングされたページ。
     """
-    # 国と規制を結合して表示用のリストを作成
-    items = countries + regulations
-
     return templates.TemplateResponse(
         request=request,
         name='document.html',
-        context={'items': items},
+        context={
+            'selected_countries': countries,
+            'selected_regulations': regulations,
+            'is_executable': bool(countries or regulations),
+        },
+    )
+
+
+@router.post('/generate_table', response_class=HTMLResponse)
+async def generate_table(request: Request) -> HTMLResponse:
+    """ダミーのテーブルデータを生成する。
+
+    Args:
+        request: FastAPI リクエストオブジェクト。
+
+    Returns:
+        HTMLResponse: 生成されたテーブルを表示するレンダリングされたページ。
+    """
+    # ダミーデータの生成 (20列 x 50行)
+    headers = [f'項目{i + 1}' for i in range(20)]
+    rows = []
+    for i in range(50):
+        row = [f'データ{i + 1}-{j + 1}' for j in range(20)]
+        # それっぽいデータを入れる
+        row[2] = '適合' if i % 3 == 0 else '要確認'
+        row[5] = 'あり' if i % 2 == 0 else 'なし'
+        rows.append(row)
+
+    return templates.TemplateResponse(
+        request=request,
+        name='table_result.html',
+        context={
+            'headers': headers,
+            'rows': rows,
+        },
     )

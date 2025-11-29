@@ -1,0 +1,24 @@
+<div style="margin-top: 2rem;">
+    <h3>生成結果データ</h3>
+    <div
+        style="overflow-x: auto; overflow-y: auto; max-height: 500px; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius);">
+        <table class="striped" style="margin-bottom: 0;">
+            <thead style="position: sticky; top: 0; background-color: var(--pico-background-color); z-index: 1;">
+                <tr>
+                    {% for header in headers %}
+                    <th scope="col" style="white-space: nowrap;">{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    {% for cell in row %}
+                    <td style="white-space: nowrap;">{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
