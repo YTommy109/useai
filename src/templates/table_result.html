@@ -1,8 +1,8 @@
-<div style="margin-top: 2rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0;">生成結果データ</h3>
+<div class="mt-2">
+    <div class="table-header">
+        <h3 class="m-0">生成結果データ</h3>
         <div>
-            <a href="/download_csv" download style="margin-right: 0.5rem;">
+            <a href="/download_csv" download class="mr-05">
                 <button type="button">CSV ダウンロード</button>
             </a>
             <a href="/download_excel" download>
@@ -10,13 +10,12 @@
             </a>
         </div>
     </div>
-    <div
-        style="overflow-x: auto; overflow-y: auto; max-height: 500px; border: 1px solid var(--pico-muted-border-color); border-radius: var(--pico-border-radius);">
-        <table class="striped" style="margin-bottom: 0;">
-            <thead style="position: sticky; top: 0; background-color: var(--pico-background-color); z-index: 1;">
+    <div class="table-container">
+        <table class="striped m-0">
+            <thead class="table-sticky-header">
                 <tr>
                     {% for header in headers %}
-                    <th scope="col" style="white-space: nowrap;">{{ header }}</th>
+                    <th scope="col" class="nowrap">{{ header }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -24,7 +23,7 @@
                 {% for row in rows %}
                 <tr>
                     {% for cell in row %}
-                    <td style="white-space: nowrap;">{{ cell }}</td>
+                    <td class="nowrap">{{ cell }}</td>
                     {% endfor %}
                 </tr>
                 {% endfor %}

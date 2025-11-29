@@ -1,77 +1,52 @@
-<!DOCTYPE html>
-<html lang="ja">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>国選択</title>
-    <link rel="stylesheet" href="/static/vendor/css/pico.min.css">
-    <script src="/static/vendor/js/htmx.min.js"></script>
-    <style>
-        :root {
-            font-size: 14px;
-            /* 全体のフォントサイズを小さく */
-        }
+{% block title %}国選択{% endblock %}
 
-        .scrollable-list {
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid var(--pico-muted-border-color);
-            padding: 1rem;
-            border-radius: var(--pico-border-radius);
-        }
+{% block head %}
+{% endblock %}
 
-        table {
-            font-size: 0.9em;
-            /* テーブル内はさらに少し小さく */
-        }
-    </style>
-</head>
-
-<body>
-    <main class="container">
-        <form hx-post="/generate_document" hx-trigger="change" hx-target="#document-preview">
-            <!-- 入力エリア -->
-            <div class="grid">
-                <!-- 国選択 -->
-                <div>
-                    <h2>国を選択</h2>
-                    <div class="scrollable-list">
-                        {% include "components/country_selector.html" %}
-                    </div>
-                </div>
-                <!-- 法規選択 -->
-                <div>
-                    <h2>法規を選択</h2>
-                    <div class="scrollable-list">
-                        {% include "components/regulation_selector.html" %}
-                    </div>
-                </div>
-            </div>
-        </form>
-
-        <hr>
-
-        <!-- 出力エリア -->
+{% block content %}
+<form id="selection-form" hx-post="/generate_document" hx-trigger="change delay:300ms" hx-target="#prompt-debug-content"
+    hx-indicator="#loading-indicator">
+    <!-- 入力エリア -->
+    <div class="grid">
+        <!-- 国選択 -->
         <div>
-            <h2>選択結果</h2>
-            <div id="document-preview">
-                <details style="margin-bottom: 1rem;">
-                    <summary>プロンプト詳細（デバッグ用）</summary>
-                    <div class="pico-background-slate-50"
-                        style="white-space: pre-wrap; border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: var(--pico-border-radius); color: var(--pico-muted-color);">
-                        （ここに生成された文書が表示されます）
-                    </div>
-                </details>
+            <h2>
+                国を選択
+                <span id="loading-indicator" aria-busy="true" class="htmx-indicator"></span>
+            </h2>
+            <div class="scrollable-list">
+                {% include "components/country_selector.html" %}
             </div>
-
-            <div id="execute-button-container" style="margin-top: 1rem;">
-                <button disabled>実行</button>
-            </div>
-
-            <div id="table-result"></div>
         </div>
-    </main>
-</body>
+        <!-- 法規選択 -->
+        <div>
+            <h2>法規を選択</h2>
+            <div class="scrollable-list">
+                {% include "components/regulation_selector.html" %}
+            </div>
+        </div>
+    </div>
+</form>
 
-</html>
+<hr>
+
+<!-- 出力エリア -->
+<div>
+    <h2>選択結果</h2>
+    <div id="document-preview">
+        <details style="margin-bottom: 1rem;">
+            <summary>プロンプト詳細（デバッグ用）</summary>
+            <div id="prompt-debug-content" class="pico-background-slate-50"
+                style="white-space: pre-wrap; border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: var(--pico-border-radius); color: var(--pico-muted-color);">
+                （ここに生成された文書が表示されます）
+            </div>
+        </details>
+    </div>
+
+    {% include "components/execute_button.html" %}
+
+    <div id="table-result"></div>
+</div>
+{% endblock %}

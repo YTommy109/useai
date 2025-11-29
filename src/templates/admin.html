@@ -1,68 +1,48 @@
-<!DOCTYPE html>
-<html lang="ja">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理画面 - UseAI</title>
-    <link rel="stylesheet" href="/static/vendor/css/pico.min.css">
-    <script src="/static/vendor/js/htmx.min.js"></script>
-    <style>
-        body {
-            padding: 20px;
-        }
+{% block title %}管理画面 - UseAI{% endblock %}
 
-        .card {
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-    </style>
-</head>
+{% block head %}
+{% endblock %}
 
-<body>
-    <main class="container">
-        <h1>管理ダッシュボード</h1>
-        <p><a href="/">トップページに戻る</a></p>
+{% block content %}
+<h1>管理ダッシュボード</h1>
+<p><a href="/">トップページに戻る</a></p>
 
-        <section>
-            <h2>現在のデータ状況</h2>
-            <p><code>data/csv/</code> ディレクトリ内のCSVファイルを読み込んでデータベースを更新します。</p>
+<section>
+    <h2>現在のデータ状況</h2>
+    <p><code>data/csv/</code> ディレクトリ内のCSVファイルを読み込んでデータベースを更新します。</p>
 
-            <table role="grid">
-                <thead>
-                    <tr>
-                        <th scope="col">データ名</th>
-                        <th scope="col">レコード数</th>
-                        <th scope="col">操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>国 (Countries)</td>
-                        <td><strong id="country-count">{{ country_count }}</strong></td>
-                        <td>
-                            <button hx-post="/admin/import/countries" hx-target="#country-count" hx-swap="innerHTML"
-                                class="outline">
-                                更新
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>法規 (Regulations)</td>
-                        <td><strong id="regulation-count">{{ regulation_count }}</strong></td>
-                        <td>
-                            <button hx-post="/admin/import/regulations" hx-target="#regulation-count"
-                                hx-swap="innerHTML" class="outline">
-                                更新
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-    </main>
-</body>
-
-</html>
+    <table role="grid">
+        <thead>
+            <tr>
+                <th scope="col">データ名</th>
+                <th scope="col">レコード数</th>
+                <th scope="col">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>国 (Countries)</td>
+                <td><strong id="country-count">{{ country_count }}</strong></td>
+                <td>
+                    <button hx-post="/admin/import/countries" hx-target="#country-count" hx-swap="innerHTML"
+                        class="outline">
+                        更新
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>法規 (Regulations)</td>
+                <td><strong id="regulation-count">{{ regulation_count }}</strong></td>
+                <td>
+                    <button hx-post="/admin/import/regulations" hx-target="#regulation-count" hx-swap="innerHTML"
+                        class="outline">
+                        更新
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+{% endblock %}

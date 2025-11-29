@@ -1,0 +1,84 @@
+:root {
+    font-size: 14px;
+    /* 全体のフォントサイズを小さく */
+    --scrollable-list-height: 300px;
+    --table-max-height: 500px;
+}
+
+.scrollable-list {
+    height: var(--scrollable-list-height);
+    overflow-y: auto;
+    border: 1px solid var(--pico-muted-border-color);
+    padding: 1rem;
+    border-radius: var(--pico-border-radius);
+}
+
+table {
+    font-size: 0.9em;
+    /* テーブル内はさらに少し小さく */
+}
+
+.debug-content {
+    white-space: pre-wrap;
+    border: 1px solid var(--pico-muted-border-color);
+    padding: 1rem;
+    border-radius: var(--pico-border-radius);
+    color: var(--pico-muted-color);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: var(--table-max-height);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+}
+
+.table-striped {
+    margin-bottom: 0;
+}
+
+.table-sticky-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--pico-background-color);
+    z-index: 1;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.mt-2 {
+    margin-top: 2rem;
+}
+
+.mb-1 {
+    margin-bottom: 1rem;
+}
+
+.mr-05 {
+    margin-right: 0.5rem;
+}
+
+.m-0 {
+    margin: 0;
+}
+
+.admin-body {
+    padding: 20px;
+}
+
+.admin-card {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
