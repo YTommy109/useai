@@ -53,7 +53,10 @@ async def read_root(request: Request, session: AsyncSession = Depends(get_sessio
     return templates.TemplateResponse(
         request=request,
         name='index.html',
-        context={'grouped_countries': grouped_countries, 'regulations': regulations},
+        context={
+            'grouped_countries': grouped_countries,
+            'regulations': regulations,
+        },
     )
 
 
@@ -62,23 +65,37 @@ async def generate_document(
     request: Request,
     countries: list[str] = Form(default=[]),
     regulations: list[str] = Form(default=[]),
+    open_accordions: list[str] = Form(default=[]),
+    session: AsyncSession = Depends(get_session),
 ) -> HTMLResponse:
-    """選択された国と規制に基づいて文書を生成する。
+    """選択された国と規制に基づいて文書を生成し、メインインターフェース全体を更新する。
 
     Args:
         request: FastAPI リクエストオブジェクト。
         countries: 選択された国名のリスト。
         regulations: 選択された規制名のリスト。
+        open_accordions: 開いているアコーディオンのIDリスト。
+        session: 非同期データベースセッション。
 
     Returns:
-        HTMLResponse: 生成された文書を表示するレンダリングされたページ。
+        HTMLResponse: 更新されたメインインターフェース。
     """
+    country_repo = CountryRepository(session)
+    regulation_repo = RegulationRepository(session)
+
+    # 再レンダリングのために全データを取得
+    grouped_countries = await country_repo.get_grouped_by_continent()
+    all_regulations = await regulation_repo.get_all_names()
+
     return templates.TemplateResponse(
         request=request,
-        name='document.html',
+        name='components/main_interface.html',
         context={
+            'grouped_countries': grouped_countries,
+            'regulations': all_regulations,
             'selected_countries': countries,
             'selected_regulations': regulations,
+            'open_accordions': open_accordions,
             'is_executable': bool(countries or regulations),
         },
     )

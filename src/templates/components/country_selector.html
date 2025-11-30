@@ -4,7 +4,8 @@
     <div style="padding-left: 1rem;">
         {% for country in countries %}
         <label>
-            <input type="checkbox" name="countries" value="{{ country }}">
+            <input type="checkbox" name="countries" value="{{ country }}" {% if country in selected_countries
+                %}checked{% endif %}>
             {{ country }}
         </label>
         {% endfor %}

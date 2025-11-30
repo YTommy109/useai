@@ -6,46 +6,9 @@
 {% endblock %}
 
 {% block content %}
-<form id="selection-form" hx-post="/generate_document" hx-trigger="change delay:300ms" hx-target="#prompt-debug-content"
-    hx-indicator="#loading-indicator">
-    <!-- 入力エリア -->
-    <div class="grid">
-        <!-- 国選択 -->
-        <div>
-            <h2>
-                国を選択
-                <span id="loading-indicator" aria-busy="true" class="htmx-indicator"></span>
-            </h2>
-            <div class="c-scrollable-list">
-                {% include "components/country_selector.html" %}
-            </div>
-        </div>
-        <!-- 法規選択 -->
-        <div>
-            <h2>法規を選択</h2>
-            <div class="c-scrollable-list">
-                {% include "components/regulation_selector.html" %}
-            </div>
-        </div>
-    </div>
-</form>
-
-<hr>
-
-<!-- 出力エリア -->
-<div>
-    <h2>選択結果</h2>
-    <div id="document-preview">
-        <details style="margin-bottom: 1rem;">
-            <summary>プロンプト詳細（デバッグ用）</summary>
-            <div id="prompt-debug-content" class="pico-background-slate-50 c-debug-content">
-                （ここに生成された文書が表示されます）
-            </div>
-        </details>
-    </div>
-
-    {% include "components/execute_button.html" %}
-
-    <div id="table-result"></div>
+<div id="main-interface">
+    {% include "components/main_interface.html" %}
 </div>
+
+<div id="table-result"></div>
 {% endblock %}

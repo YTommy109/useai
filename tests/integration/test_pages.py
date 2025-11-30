@@ -1,4 +1,5 @@
 import pytest
+from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
@@ -101,11 +102,28 @@ async def test_国と規制を両方選択してドキュメントを生成で�
 
     # Assert
     assert response.status_code == 200
-    assert 'Test Country A' in response.text
-    assert 'Test Regulation 1' in response.text
-    assert 'ゴール:' in response.text  # ドキュメント部分の確認
-    assert '項目1' not in response.text  # テーブル部分は含まれないこと
-    assert 'disabled' not in response.text  # 選択されているのでボタンは有効
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # プロンプトデバッグエリアの確認
+    debug_content = soup.find(id='prompt-debug-content')
+    assert debug_content is not None
+    assert 'ゴール: これはダミーのプロンプトです。' in debug_content.text
+    assert '<li>Test Country A</li>' in str(debug_content)
+    assert '<li>Test Regulation 1</li>' in str(debug_content)
+
+    # 選択状態の維持を確認 (checked属性)
+    country_checkbox = soup.find('input', {'value': 'Test Country A'})
+    assert country_checkbox is not None
+    assert country_checkbox.has_attr('checked')
+
+    regulation_checkbox = soup.find('input', {'value': 'Test Regulation 1'})
+    assert regulation_checkbox is not None
+    assert regulation_checkbox.has_attr('checked')
+
+    # 実行ボタンが有効化されていること
+    execute_button = soup.find('button', {'id': 'execute-button'})
+    assert execute_button is not None
+    assert not execute_button.has_attr('disabled')
 
 
 @pytest.mark.asyncio
@@ -118,7 +136,58 @@ async def test_何も選択しないと実行ボタンが無効になる(client:
 
     # Assert
     assert response.status_code == 200
-    assert 'disabled' in response.text  # 何も選択されていないのでボタンは無効
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # 実行ボタンが無効化されていること
+    execute_button = soup.find('button', {'id': 'execute-button'})
+    assert execute_button is not None
+    assert execute_button.has_attr('disabled')
+
+    # プロンプトデバッグアコーディオンのチェックボックスが未チェックであること
+    accordion_checkbox = soup.find('input', {'id': 'accordion-prompt-debug'})
+    assert accordion_checkbox is not None
+    assert not accordion_checkbox.has_attr('checked')
+
+
+@pytest.mark.asyncio
+async def test_アコーディオンの開閉状態が維持される(client: TestClient):
+    # Arrange - アコーディオンを開いた状態で送信
+    payload = {
+        'countries': ['Test Country A'],
+        'regulations': [],
+        'open_accordions': ['prompt-debug']
+    }
+
+    # Act
+    response = client.post('/generate_document', data=payload)
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # アコーディオンのチェックボックスがチェックされていること
+    accordion_checkbox = soup.find('input', {'id': 'accordion-prompt-debug'})
+    assert accordion_checkbox is not None
+    assert accordion_checkbox.has_attr('checked')
+
+    # Arrange - アコーディオンを閉じた状態で送信
+    payload_closed = {
+        'countries': ['Test Country A'],
+        'regulations': [],
+        'open_accordions': []
+    }
+
+    # Act
+    response_closed = client.post('/generate_document', data=payload_closed)
+
+    # Assert
+    assert response_closed.status_code == 200
+    soup_closed = BeautifulSoup(response_closed.text, 'html.parser')
+
+    # アコーディオンのチェックボックスが未チェックであること
+    accordion_checkbox_closed = soup_closed.find('input', {'id': 'accordion-prompt-debug'})
+    assert accordion_checkbox_closed is not None
+    assert not accordion_checkbox_closed.has_attr('checked')
 
 
 @pytest.mark.asyncio

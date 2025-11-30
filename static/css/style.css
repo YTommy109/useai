@@ -107,3 +107,50 @@ table {
 .u-nowrap {
     white-space: nowrap;
 }
+
+/* ============================================
+   Accordion - CSSのみのアコーディオン
+   ============================================ */
+
+/* アコーディオンのトグル（チェックボックス）を非表示 */
+.c-accordion-toggle {
+    display: none;
+}
+
+/* アコーディオンヘッダー（ラベル） */
+.c-accordion-header {
+    display: block;
+    cursor: pointer;
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    user-select: none;
+}
+
+/* 三角アイコン */
+.c-accordion-header::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 0.8em;
+    transition: transform 0.2s;
+}
+
+/* 開いている時の三角アイコン */
+.c-accordion-toggle:checked+.c-accordion-header::before {
+    transform: rotate(90deg);
+}
+
+/* アコーディオンコンテンツ */
+.c-accordion-content {
+    display: none !important;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* 開いている時のコンテンツ表示 */
+.c-accordion-toggle:checked~.c-accordion-content {
+    display: block !important;
+}
