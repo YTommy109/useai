@@ -1,8 +1,8 @@
-<div class="mt-2">
-    <div class="table-header">
-        <h3 class="m-0">生成結果データ</h3>
+<div class="u-mt-2">
+    <div class="c-table-header">
+        <h3 class="u-m-0">生成結果データ</h3>
         <div>
-            <a href="/download_csv" download class="mr-05">
+            <a href="/download_csv" download class="u-mr-05">
                 <button type="button">CSV ダウンロード</button>
             </a>
             <a href="/download_excel" download>
@@ -10,12 +10,12 @@
             </a>
         </div>
     </div>
-    <div class="table-container">
-        <table class="striped m-0">
-            <thead class="table-sticky-header">
+    <div class="c-table-container">
+        <table class="striped c-table-striped u-m-0">
+            <thead class="c-table-sticky-header">
                 <tr>
                     {% for header in headers %}
-                    <th scope="col" class="nowrap">{{ header }}</th>
+                    <th scope="col" class="u-nowrap">{{ header }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -23,7 +23,7 @@
                 {% for row in rows %}
                 <tr>
                     {% for cell in row %}
-                    <td class="nowrap">{{ cell }}</td>
+                    <td class="u-nowrap">{{ cell }}</td>
                     {% endfor %}
                 </tr>
                 {% endfor %}

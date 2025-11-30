@@ -16,14 +16,14 @@
                 国を選択
                 <span id="loading-indicator" aria-busy="true" class="htmx-indicator"></span>
             </h2>
-            <div class="scrollable-list">
+            <div class="c-scrollable-list">
                 {% include "components/country_selector.html" %}
             </div>
         </div>
         <!-- 法規選択 -->
         <div>
             <h2>法規を選択</h2>
-            <div class="scrollable-list">
+            <div class="c-scrollable-list">
                 {% include "components/regulation_selector.html" %}
             </div>
         </div>
@@ -38,8 +38,7 @@
     <div id="document-preview">
         <details style="margin-bottom: 1rem;">
             <summary>プロンプト詳細（デバッグ用）</summary>
-            <div id="prompt-debug-content" class="pico-background-slate-50"
-                style="white-space: pre-wrap; border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: var(--pico-border-radius); color: var(--pico-muted-color);">
+            <div id="prompt-debug-content" class="pico-background-slate-50 c-debug-content">
                 （ここに生成された文書が表示されます）
             </div>
         </details>
