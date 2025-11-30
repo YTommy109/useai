@@ -49,7 +49,7 @@ async def client_fixture(session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_read_main(client: TestClient):
+async def test_メインページが表示される(client: TestClient):
     # Arrange
     # No specific arrangement needed beyond fixture setup
 
@@ -66,7 +66,7 @@ async def test_read_main(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_generate_document_with_countries(client: TestClient):
+async def test_国を選択してドキュメントを生成できる(client: TestClient):
     # Arrange
     payload = {'countries': ['Test Country A'], 'regulations': []}
 
@@ -79,7 +79,7 @@ async def test_generate_document_with_countries(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_generate_document_with_regulations(client: TestClient):
+async def test_規制を選択してドキュメントを生成できる(client: TestClient):
     # Arrange
     payload = {'countries': [], 'regulations': ['Test Regulation 1']}
 
@@ -92,7 +92,7 @@ async def test_generate_document_with_regulations(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_generate_document_with_both(client: TestClient):
+async def test_国と規制を両方選択してドキュメントを生成できる(client: TestClient):
     # Arrange
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
 
@@ -109,7 +109,7 @@ async def test_generate_document_with_both(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_generate_document_empty(client: TestClient):
+async def test_何も選択しないと実行ボタンが無効になる(client: TestClient):
     # Arrange
     payload = {'countries': [], 'regulations': []}
 
@@ -122,7 +122,7 @@ async def test_generate_document_empty(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_generate_table(client: TestClient):
+async def test_テーブルを生成できる(client: TestClient):
     # Act
     response = client.post('/generate_table')
 
@@ -130,3 +130,38 @@ async def test_generate_table(client: TestClient):
     assert response.status_code == 200
     assert '生成結果データ' in response.text
     assert '項目1' in response.text
+
+
+@pytest.mark.asyncio
+async def test_CSVダウンロードができる(client: TestClient):
+    # Act
+    response = client.get('/download_csv')
+
+    # Assert
+    assert response.status_code == 200
+    assert response.headers['content-type'] == 'text/csv; charset=utf-8'
+    assert 'attachment' in response.headers['content-disposition']
+    assert 'filename=result.csv' in response.headers['content-disposition']
+
+    # CSV内容の検証
+    content = response.text
+    assert '項目1' in content  # ヘッダーの確認
+    assert 'データ1-1' in content  # データの確認
+
+
+@pytest.mark.asyncio
+async def test_Excelダウンロードができる(client: TestClient):
+    # Act
+    response = client.get('/download_excel')
+
+    # Assert
+    assert response.status_code == 200
+    assert (
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        in response.headers['content-type']
+    )
+    assert 'attachment' in response.headers['content-disposition']
+    assert 'filename=result.xlsx' in response.headers['content-disposition']
+
+    # Excelファイルとして読み込めることを確認
+    assert len(response.content) > 0

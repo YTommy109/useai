@@ -35,6 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "beautifulsoup4>=4.14.2",
     "coverage[toml]>=7.10",
     "docstring-parser>=0.17",
     "freezegun>=1.5.3",
@@ -68,7 +69,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-markers = ["ci: marks tests as ci tests"]
+markers = []  # asyncio は pytest-asyncio が自動登録するため不要
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 # addopts = "--browser chromium --browser firefox --browser webkit"
@@ -166,7 +167,35 @@ max-returns = 2     # 関数内のreturn文の最大数
 max-statements = 15 # 関数内の文の最大数
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = [
+"tests/unit/**" = [
+    "PLR2004", # マジックナンバー許可
+    "PLR0915", # 長い関数許可
+    "PLR0913", # 多い引数許可
+    "ARG",     # 未使用引数許可
+    "PLC2401", # 非ASCII文字許可
+    "S",       # セキュリティチェック緩和
+    "N",       # 命名規則緩和
+    "T20",     # print文許可
+    "DTZ",     # datetime関連許可
+    "ERA001",  # コメントアウトコード許可
+    "D",       # docstring不要
+    "ANN",     # 型注釈不要
+]
+"tests/integration/**" = [
+    "PLR2004", # マジックナンバー許可
+    "PLR0915", # 長い関数許可
+    "PLR0913", # 多い引数許可
+    "ARG",     # 未使用引数許可
+    "PLC2401", # 非ASCII文字許可
+    "S",       # セキュリティチェック緩和
+    "N",       # 命名規則緩和
+    "T20",     # print文許可
+    "DTZ",     # datetime関連許可
+    "ERA001",  # コメントアウトコード許可
+    "D",       # docstring不要
+    "ANN",     # 型注釈不要
+]
+"tests/e2e/**" = [
     "PLR2004", # マジックナンバー許可
     "PLR0915", # 長い関数許可
     "PLR0913", # 多い引数許可
@@ -328,8 +357,9 @@ prod = "uvicorn src.main:app --host 0.0.0.0 --port 8000"
 
 # テスト
 test = "pytest --testmon"
-test-ut = "pytest --testmon -m 'not ci' tests"
-test-ci = "pytest --testmon -m 'ci' tests/ci"
+test-ut = "pytest --testmon tests/unit"
+test-it = "pytest --testmon tests/integration"
+test-ci = "pytest tests"  # CI では全テストを実行
 test-all = "pytest"
 coverage = "pytest --cov=app --cov-report=term-missing"
 
@@ -356,3 +386,4 @@ docs = "pdoc app --html --output-dir docs"
 
 # すべてのチェックとテスト
 test-all-checks = "task lint && task coverage"
+
