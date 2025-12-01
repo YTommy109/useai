@@ -155,7 +155,7 @@ async def test_アコーディオンの開閉状態が維持される(client: Te
     payload = {
         'countries': ['Test Country A'],
         'regulations': [],
-        'open_accordions': ['prompt-debug']
+        'open_accordions': ['prompt-debug'],
     }
 
     # Act
@@ -171,11 +171,7 @@ async def test_アコーディオンの開閉状態が維持される(client: Te
     assert accordion_checkbox.has_attr('checked')
 
     # Arrange - アコーディオンを閉じた状態で送信
-    payload_closed = {
-        'countries': ['Test Country A'],
-        'regulations': [],
-        'open_accordions': []
-    }
+    payload_closed = {'countries': ['Test Country A'], 'regulations': [], 'open_accordions': []}
 
     # Act
     response_closed = client.post('/generate_document', data=payload_closed)

@@ -120,6 +120,8 @@ ignore = [
     "COM812", # trailing-comma-missing（formatterと競合するため無効化）
     "ISC001", # single-line-implicit-string-concatenation（formatterと競合）
     "RUF003", # ambiguous-unicode-character-comment（日本語コメントを許可）
+    "RUF002", # ambiguous-unicode-character-docstring（日本語ドキュメントを許可）
+    "RUF001", # ambiguous-unicode-character-string（日本語文字列を許可）
     "PLC2401", # non-ascii-name（日本語変数名を許可）
     "S101",   # Use of assert（テスト等で使用）
     "S603",   # subprocess-without-shell-equals-true（セキュリティ上必要な場合あり）
@@ -161,9 +163,9 @@ mark-parentheses = false    # pytest markで括弧を強制しない
 ban-relative-imports = "parents" # 親ディレクトリへの相対importを禁止
 
 [tool.ruff.lint.pylint]
-max-args = 4        # 関数の引数の最大数
+max-args = 5        # 関数の引数の最大数
 max-branches = 5    # 関数内の分岐の最大数
-max-returns = 2     # 関数内のreturn文の最大数
+max-returns = 3     # 関数内のreturn文の最大数
 max-statements = 15 # 関数内の文の最大数
 
 [tool.ruff.lint.per-file-ignores]
@@ -209,20 +211,7 @@ max-statements = 15 # 関数内の文の最大数
     "D",       # docstring不要
     "ANN",     # 型注釈不要
 ]
-"tests_e2e/**" = [
-    "PLR2004", # マジックナンバー許可
-    "PLR0915", # 長い関数許可
-    "PLR0913", # 多い引数許可
-    "ARG",     # 未使用引数許可
-    "PLC2401", # 非ASCII文字許可
-    "S",       # セキュリティチェック緩和
-    "N",       # 命名規則緩和
-    "T20",     # print文許可
-    "DTZ",     # datetime関連許可
-    "ERA001",  # コメントアウトコード許可
-    "D",       # docstring不要
-    "ANN",     # 型注釈不要
-]
+
 "src/main.py" = [
     "PLC0415", # import文の位置制限緩和
 ]
@@ -262,7 +251,7 @@ python_version = "3.12" # 対象Pythonバージョン
 strict = true           # 厳格モード有効
 show_error_codes = true # エラーコードを表示
 pretty = true           # 色付きで見やすいエラー表示
-exclude = ["ait", "tests"]
+exclude = ["tests"]
 enable_error_code = [
     "truthy-bool", "redundant-expr", "unused-awaitable", "ignore-without-code", "possibly-undefined"
 ] # 追加チェック有効化
@@ -325,7 +314,7 @@ include = ["src", "tests", "tests_e2e"]
 exclude = [".venv"]
 
 [tool.vulture]
-exclude = ["src/config.py", "src/types/enums.py", "src/logger.py"]
+exclude = []
 ignore_decorators = [
     "@app.get",
     "@app.post",
@@ -361,7 +350,7 @@ test-ut = "pytest --testmon tests/unit"
 test-it = "pytest --testmon tests/integration"
 test-ci = "pytest tests"  # CI では全テストを実行
 test-all = "pytest"
-coverage = "pytest --cov=app --cov-report=term-missing"
+coverage = "pytest --cov=src --cov-report=term-missing"
 
 # Lint/Format
 ruff = "ruff format . && ruff check --fix ."
