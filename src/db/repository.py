@@ -4,10 +4,10 @@
 データベースクエリをカプセル化するリポジトリクラスを提供します。
 """
 
-from sqlmodel import SQLModel, delete, func, select
+from sqlmodel import SQLModel, col, delete, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import Country, Regulation
+from src.db.models import Country, Regulation, Report
 
 
 class BaseRepository[ModelType: SQLModel]:
@@ -50,6 +50,45 @@ class BaseRepository[ModelType: SQLModel]:
         """
         result = await self.session.exec(select(self.model))
         return list(result.all())
+
+    async def get_by_id(self, record_id: int) -> ModelType | None:
+        """IDでレコードを取得する。
+
+        Args:
+            record_id: レコードID。
+
+        Returns:
+            ModelType | None: 取得したレコード。存在しない場合は None。
+        """
+        return await self.session.get(self.model, record_id)
+
+    async def create(self, instance: ModelType) -> ModelType:
+        """レコードを作成する。
+
+        Args:
+            instance: 作成するモデルインスタンス。
+
+        Returns:
+            ModelType: 作成されたモデルインスタンス。
+        """
+        self.session.add(instance)
+        await self.session.commit()
+        await self.session.refresh(instance)
+        return instance
+
+    async def update(self, instance: ModelType) -> ModelType:
+        """レコードを更新する。
+
+        Args:
+            instance: 更新するモデルインスタンス。
+
+        Returns:
+            ModelType: 更新されたモデルインスタンス。
+        """
+        self.session.add(instance)
+        await self.session.commit()
+        await self.session.refresh(instance)
+        return instance
 
 
 class CountryRepository(BaseRepository[Country]):
@@ -94,14 +133,10 @@ class CountryRepository(BaseRepository[Country]):
 
 
 class RegulationRepository(BaseRepository[Regulation]):
-    """Regulation エンティティのデータベース操作用リポジトリ。
-
-    Attributes:
-        session: クエリ実行用の非同期データベースセッション。
-    """
+    """規制リポジトリ。"""
 
     def __init__(self, session: AsyncSession) -> None:
-        """データベースセッションでリポジトリを初期化する。
+        """初期化。
 
         Args:
             session: 非同期データベースセッション。
@@ -109,10 +144,33 @@ class RegulationRepository(BaseRepository[Regulation]):
         super().__init__(session, Regulation)
 
     async def get_all_names(self) -> list[str]:
-        """データベースからすべての規制名を取得する。
+        """すべての規制名を取得する。
 
         Returns:
-            規制名のリスト。
+            list[str]: 規制名のリスト。
         """
-        regulations = await self.get_all()
-        return [r.name for r in regulations]
+        statement = select(self.model.name)
+        result = await self.session.exec(statement)
+        return list(result.all())
+
+
+class ReportRepository(BaseRepository[Report]):
+    """レポートリポジトリ。"""
+
+    def __init__(self, session: AsyncSession) -> None:
+        """初期化。
+
+        Args:
+            session: 非同期データベースセッション。
+        """
+        super().__init__(session, Report)
+
+    async def get_all_desc(self) -> list[Report]:
+        """すべてのレポートを作成日時の降順で取得する。
+
+        Returns:
+            list[Report]: レポートのリスト。
+        """
+        statement = select(self.model).order_by(col(self.model.created_at).desc())
+        result = await self.session.exec(statement)
+        return list(result.all())

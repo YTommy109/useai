@@ -10,7 +10,7 @@ from openpyxl import Workbook
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.engine import get_session
-from src.db.repository import CountryRepository, RegulationRepository
+from src.db.repository import CountryRepository, RegulationRepository, ReportRepository
 
 router = APIRouter()
 templates = Jinja2Templates(directory='src/templates')
@@ -50,12 +50,17 @@ async def read_root(request: Request, session: AsyncSession = Depends(get_sessio
     grouped_countries = await country_repo.get_grouped_by_continent()
     regulations = await regulation_repo.get_all_names()
 
+    # レポート一覧を取得
+    report_repo = ReportRepository(session)
+    reports = await report_repo.get_all_desc()
+
     return templates.TemplateResponse(
         request=request,
         name='index.html',
         context={
             'grouped_countries': grouped_countries,
             'regulations': regulations,
+            'reports': reports,
         },
     )
 
@@ -87,6 +92,10 @@ async def generate_document(
     grouped_countries = await country_repo.get_grouped_by_continent()
     all_regulations = await regulation_repo.get_all_names()
 
+    # レポート一覧を取得
+    report_repo = ReportRepository(session)
+    reports = await report_repo.get_all_desc()
+
     return templates.TemplateResponse(
         request=request,
         name='components/main_interface.html',
@@ -97,6 +106,7 @@ async def generate_document(
             'selected_regulations': regulations,
             'open_accordions': open_accordions,
             'is_executable': bool(countries or regulations),
+            'reports': reports,
         },
     )
 

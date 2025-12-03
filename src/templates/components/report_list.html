@@ -1,0 +1,36 @@
+<div id="report-list" class="c-report-list">
+    <h4>レポート履歴</h4>
+    <div class="c-report-table-wrapper">
+        <table class="c-report-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>作成日時</th>
+                    <th>ステータス</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ report.created_at | datetimeformat }}</td>
+                    <td>
+                        <span class="c-status-badge c-status-badge--{{ report.status }}">
+                            {{ report.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if report.status == 'completed' %}
+                        <button class="outline contrast" hx-get="/reports/{{ report.id }}/preview"
+                            hx-target="#preview-area" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; width: auto;">
+                            プレビュー
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

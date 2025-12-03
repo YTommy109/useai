@@ -154,3 +154,67 @@ table {
 .c-accordion-toggle:checked~.c-accordion-content {
     display: block !important;
 }
+
+/* ============================================
+   Report List - レポート履歴コンポーネント
+   ============================================ */
+
+/* レポート履歴コンテナ */
+.c-report-list {
+    margin-top: 2rem;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+    padding: 1rem;
+}
+
+/* レポートテーブルラッパー */
+.c-report-table-wrapper {
+    max-height: 300px;
+    /* 約10行分 */
+    overflow-y: auto;
+}
+
+/* レポートテーブル */
+.c-report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.c-report-table th,
+.c-report-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.c-report-table th {
+    position: sticky;
+    top: 0;
+    background-color: var(--pico-background-color);
+    z-index: 1;
+}
+
+/* ステータスバッジ */
+.c-status-badge {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.c-status-badge--processing {
+    background-color: var(--pico-primary-background);
+    color: var(--pico-primary-inverse);
+}
+
+.c-status-badge--completed {
+    background-color: #2ecc71;
+    /* Green */
+    color: white;
+}
+
+.c-status-badge--failed {
+    background-color: #e74c3c;
+    /* Red */
+    color: white;
+}
