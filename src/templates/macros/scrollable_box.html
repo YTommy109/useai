@@ -1,0 +1,16 @@
+{# スクロール可能なボックスマクロ #}
+{% macro scrollable_box(title=None, show_loading=False) %}
+<div>
+    {% if title %}
+    <h2>
+        {{ title }}
+        {% if show_loading %}
+        <span id="loading-indicator" aria-busy="true" class="htmx-indicator"></span>
+        {% endif %}
+    </h2>
+    {% endif %}
+    <div class="c-scrollable-list u-bordered u-p-1">
+        {{ caller() }}
+    </div>
+</div>
+{% endmacro %}

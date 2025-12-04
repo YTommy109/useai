@@ -1,24 +1,18 @@
+{% from "macros/scrollable_box.html" import scrollable_box %}
+
 <form hx-post="/generate_document" hx-trigger="change delay:300ms" hx-target="#main-interface" hx-swap="innerHTML"
     hx-indicator="#loading-indicator">
     <!-- 入力エリア -->
     <div class="grid">
         <!-- 国選択 -->
-        <div>
-            <h2>
-                国を選択
-                <span id="loading-indicator" aria-busy="true" class="htmx-indicator"></span>
-            </h2>
-            <div class="c-scrollable-list">
-                {% include "components/country_selector.html" %}
-            </div>
-        </div>
+        {% call scrollable_box(title="国を選択", show_loading=True) %}
+        {% include "components/country_selector.html" %}
+        {% endcall %}
+
         <!-- 法規選択 -->
-        <div>
-            <h2>法規を選択</h2>
-            <div class="c-scrollable-list">
-                {% include "components/regulation_selector.html" %}
-            </div>
-        </div>
+        {% call scrollable_box(title="法規を選択") %}
+        {% include "components/regulation_selector.html" %}
+        {% endcall %}
     </div>
 
     <hr>

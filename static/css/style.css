@@ -21,17 +21,11 @@ table {
 .c-scrollable-list {
     height: var(--scrollable-list-height);
     overflow-y: auto;
-    border: 1px solid var(--pico-muted-border-color);
-    padding: 1rem;
-    border-radius: var(--pico-border-radius);
 }
 
 /* デバッグ表示エリア */
 .c-debug-content {
     white-space: pre-wrap;
-    border: 1px solid var(--pico-muted-border-color);
-    padding: 1rem;
-    border-radius: var(--pico-border-radius);
     color: var(--pico-muted-color);
 }
 
@@ -48,13 +42,25 @@ table {
     overflow-x: auto;
     overflow-y: auto;
     max-height: var(--table-max-height);
-    border: 1px solid var(--pico-muted-border-color);
-    border-radius: var(--pico-border-radius);
 }
 
 /* ストライプテーブル */
 .c-table-striped {
     margin-bottom: 0;
+}
+
+/* ストライプテーブルの偶数行 - コントラストを強化 */
+.c-table-striped tbody tr:nth-child(even) {
+    background-color: var(--pico-table-row-stripped-background-color);
+    /* Picoのデフォルト値を使用 */
+}
+
+/* ダークモードでのストライプ強化 */
+@media (prefers-color-scheme: dark) {
+    .c-table-striped tbody tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.05);
+        /* より明確なコントラスト */
+    }
 }
 
 /* 固定ヘッダーテーブル */
@@ -71,20 +77,29 @@ table {
 
 /* 管理画面ボディ */
 .p-admin-body {
-    padding: 20px;
+    padding: 1.25rem;
 }
 
 /* 管理画面カード */
 .p-admin-card {
-    margin-bottom: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    padding: 1.25rem;
 }
 
 /* ============================================
    Utility - 汎用ヘルパークラス
    ============================================ */
+
+/* ボーダー */
+.u-bordered {
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: var(--pico-border-radius);
+}
+
+/* パディング */
+.u-p-1 {
+    padding: 1rem;
+}
 
 /* マージン */
 .u-mt-2 {
@@ -162,15 +177,11 @@ table {
 /* レポート履歴コンテナ */
 .c-report-list {
     margin-top: 2rem;
-    border: 1px solid var(--pico-muted-border-color);
-    border-radius: var(--pico-border-radius);
-    padding: 1rem;
 }
 
 /* レポートテーブルラッパー */
 .c-report-table-wrapper {
-    max-height: 300px;
-    /* 約10行分 */
+    max-height: var(--scrollable-list-height);
     overflow-y: auto;
 }
 

@@ -2,6 +2,7 @@ import csv
 import random
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -12,15 +13,22 @@ from src.db.repository import ReportRepository
 class ReportService:
     """レポートサービス。"""
 
-    def __init__(self, repository: ReportRepository, session: AsyncSession) -> None:
+    def __init__(
+        self,
+        repository: ReportRepository,
+        session: AsyncSession,
+        base_dir: str = 'data/reports',
+    ) -> None:
         """初期化。
 
         Args:
             repository: レポートリポジトリ。
             session: 非同期データベースセッション。
+            base_dir: レポートファイルの保存先ベースディレクトリ。
         """
         self.repository = repository
         self.session = session
+        self.base_dir = base_dir
 
     @staticmethod
     def generate_prompt_text(countries: list[str], regulations: list[str]) -> str:
@@ -84,12 +92,18 @@ class ReportService:
         Returns:
             Report: 作成されたレポートレコード。
         """
-        now = datetime.now(UTC)
-        timestamp = now.strftime('%Y%m%d_%H%M%S')
-        directory_path = f'data/reports/{timestamp}'
+        # UTC時刻を取得
+        now_utc = datetime.now(UTC)
 
+        # ディレクトリ名はJST（日本標準時）で作成
+        now_jst = now_utc.astimezone(ZoneInfo('Asia/Tokyo'))
+        timestamp = now_jst.strftime('%Y%m%d_%H%M%S')
+        directory_path = f'{self.base_dir}/{timestamp}'
+
+        # データベースにはタイムゾーン情報なしのUTC時刻を保存
+        # （SQLiteはタイムゾーン情報を保持しないため、UTC時刻として扱う）
         report = Report(
-            created_at=now,
+            created_at=now_utc.replace(tzinfo=None),
             status=ReportStatus.PROCESSING,
             directory_path=directory_path,
         )

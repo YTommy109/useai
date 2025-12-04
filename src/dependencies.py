@@ -93,8 +93,7 @@ def get_country_service(
     Returns:
         CountryService: 国サービスインスタンス。
     """
-    repository = CountryRepository(session)
-    return CountryService(repository, session)
+    return CountryService(CountryRepository(session), session)
 
 
 def get_regulation_service(
@@ -108,8 +107,7 @@ def get_regulation_service(
     Returns:
         RegulationService: 規制サービスインスタンス。
     """
-    repository = RegulationRepository(session)
-    return RegulationService(repository, session)
+    return RegulationService(RegulationRepository(session), session)
 
 
 def get_report_service(
@@ -123,8 +121,7 @@ def get_report_service(
     Returns:
         ReportService: レポートサービスインスタンス。
     """
-    repository = ReportRepository(session)
-    return ReportService(repository, session)
+    return ReportService(ReportRepository(session), session)
 
 
 def get_page_service(
@@ -138,10 +135,11 @@ def get_page_service(
     Returns:
         PageService: ページサービスインスタンス。
     """
-    country_repo = CountryRepository(session)
-    regulation_repo = RegulationRepository(session)
-    report_repo = ReportRepository(session)
-    return PageService(country_repo, regulation_repo, report_repo)
+    return PageService(
+        CountryRepository(session),
+        RegulationRepository(session),
+        ReportRepository(session),
+    )
 
 
 class PageDependencies:

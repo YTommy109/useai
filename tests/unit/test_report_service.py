@@ -20,8 +20,8 @@ def mock_session() -> AsyncMock:
 
 
 @pytest.fixture
-def service(mock_repo: AsyncMock, mock_session: AsyncMock) -> ReportService:
-    return ReportService(mock_repo, mock_session)
+def service(mock_repo: AsyncMock, mock_session: AsyncMock, tmp_path: Path) -> ReportService:
+    return ReportService(mock_repo, mock_session, base_dir=str(tmp_path))
 
 
 @pytest.mark.asyncio
@@ -30,27 +30,32 @@ async def test_レポート作成が成功する(
     mock_repo: AsyncMock,
     mock_session: AsyncMock,
     mocker: pytest_mock.MockerFixture,
+    tmp_path: Path,
 ) -> None:
     # Arrange
     prompt = 'Test Prompt'
+
+    # tmp_pathを使用したディレクトリパス
+    timestamp = '20230101_000000'
+    directory_path = f'{tmp_path}/{timestamp}'
 
     mock_report = Report(
         id=1,
         created_at=datetime(2023, 1, 1, 0, 0, 0),
         status=ReportStatus.PROCESSING,
-        directory_path='data/reports/20230101_000000',
+        directory_path=directory_path,
     )
     mock_repo.create.return_value = mock_report
     mock_repo.update.return_value = mock_report  # updateの戻り値を設定
 
-    # 外部モジュールは patch を使用
+    # テスト対象モジュール内でimportされているものは patch を使用（文字列パス）
     mock_datetime = mocker.patch('src.services.report_service.datetime')
     mock_datetime.now.return_value = datetime(2023, 1, 1, 0, 0, 0)
 
-    # 内部モジュール（Path）は patch.object を使用
+    # テストファイルでimport済みのクラスは patch.object を使用（オブジェクト参照）
     mocker.patch.object(Path, 'mkdir')
 
-    # 外部モジュール（builtins）は patch を使用
+    # builtinsは文字列パスでアクセス
     mock_file = mocker.patch('builtins.open', mocker.mock_open())
 
     # Act
@@ -66,24 +71,29 @@ async def test_レポート作成が成功する(
 
 @pytest.mark.asyncio
 async def test_レポート内容の取得が成功する(
-    service: ReportService, mock_repo: AsyncMock, mocker: pytest_mock.MockerFixture
+    service: ReportService,
+    mock_repo: AsyncMock,
+    mocker: pytest_mock.MockerFixture,
+    tmp_path: Path,
 ) -> None:
     # Arrange
     report_id = 1
+    directory_path = f'{tmp_path}/20230101_000000'
+
     mock_report = Report(
         id=report_id,
         created_at=datetime(2023, 1, 1, 0, 0, 0),
         status=ReportStatus.COMPLETED,
-        directory_path='data/reports/20230101_000000',
+        directory_path=directory_path,
     )
     mock_repo.get_by_id.return_value = mock_report
 
     tsv_content = 'header1\theader2\nval1\tval2'
 
-    # 内部モジュール（Path）は patch.object を使用
+    # テストファイルでimport済みのクラスは patch.object を使用（オブジェクト参照）
     mocker.patch.object(Path, 'exists', return_value=True)
 
-    # 外部モジュール（builtins）は patch を使用
+    # builtinsは文字列パスでアクセス
     mocker.patch('builtins.open', mocker.mock_open(read_data=tsv_content))
 
     # Act
@@ -101,24 +111,27 @@ async def test_レポート作成時にファイル保存が失敗するとス�
     mock_repo: AsyncMock,
     mock_session: AsyncMock,
     mocker: pytest_mock.MockerFixture,
+    tmp_path: Path,
 ) -> None:
     # Arrange
     prompt = 'Test Prompt'
+    timestamp = '20230101_000000'
+    directory_path = f'{tmp_path}/{timestamp}'
 
     mock_report = Report(
         id=1,
         created_at=datetime(2023, 1, 1, 0, 0, 0),
         status=ReportStatus.PROCESSING,
-        directory_path='data/reports/20230101_000000',
+        directory_path=directory_path,
     )
     mock_repo.create.return_value = mock_report
     mock_repo.update.return_value = mock_report
 
-    # 外部モジュールは patch を使用
+    # テスト対象モジュール内でimportされているものは patch を使用（文字列パス）
     mock_datetime = mocker.patch('src.services.report_service.datetime')
     mock_datetime.now.return_value = datetime(2023, 1, 1, 0, 0, 0)
 
-    # 内部モジュール（Path）は patch.object を使用
+    # テストファイルでimport済みのクラスは patch.object を使用（オブジェクト参照）
     mocker.patch.object(Path, 'mkdir', side_effect=OSError('Permission denied'))
 
     # Act & Assert

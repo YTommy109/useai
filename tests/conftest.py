@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator, Generator
+from pathlib import Path
 
 import httpx
 import pytest
@@ -11,7 +12,10 @@ from sqlmodel.pool import StaticPool
 
 from src.db.engine import get_session
 from src.db.models import Country, Regulation
+from src.db.repository import ReportRepository
+from src.dependencies import get_report_service
 from src.main import app
+from src.services.report_service import ReportService
 
 # Async In-memory SQLite for testing
 DATABASE_URL = 'sqlite+aiosqlite:///'
@@ -43,13 +47,21 @@ async def session_fixture() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture(name='async_client')
-async def async_client_fixture(session: AsyncSession) -> AsyncGenerator[httpx.AsyncClient, None]:
+async def async_client_fixture(
+    session: AsyncSession, tmp_path: Path
+) -> AsyncGenerator[httpx.AsyncClient, None]:
     """非同期HTTPクライアントフィクスチャ。"""
 
     async def get_session_override() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
+    def get_report_service_override() -> ReportService:
+        """テスト用のReportServiceを返す（tmp_pathを使用）。"""
+        repository = ReportRepository(session)
+        return ReportService(repository, session, base_dir=str(tmp_path))
+
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_report_service] = get_report_service_override
     transport = ASGITransport(app=app)
     async with httpx.AsyncClient(
         transport=transport, base_url='http://test'
@@ -59,14 +71,20 @@ async def async_client_fixture(session: AsyncSession) -> AsyncGenerator[httpx.As
 
 
 @pytest.fixture(name='client')
-def client_fixture(session: AsyncSession) -> Generator[TestClient, None, None]:
+def client_fixture(session: AsyncSession, tmp_path: Path) -> Generator[TestClient, None, None]:
     """同期HTTPクライアントフィクスチャ。"""
 
     # TestClient for synchronous tests (or async tests using TestClient)
     async def get_session_override() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
+    def get_report_service_override() -> ReportService:
+        """テスト用のReportServiceを返す（tmp_pathを使用）。"""
+        repository = ReportRepository(session)
+        return ReportService(repository, session, base_dir=str(tmp_path))
+
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_report_service] = get_report_service_override
     with TestClient(app) as client:
         yield client
     app.dependency_overrides.clear()

@@ -9,9 +9,9 @@ from collections.abc import AsyncIterator
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-DATABASE_URL = 'sqlite+aiosqlite:///./data/app.db'
+from src.config import settings
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(settings.database_url, echo=settings.sql_echo)
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
