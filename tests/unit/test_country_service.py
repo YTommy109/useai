@@ -10,7 +10,7 @@ from src.db.service import CountryService
 
 
 @pytest.mark.asyncio
-async def test_CSVファイルからのインポートが成功する():
+async def test_CSVファイルからのインポートが成功する() -> None:
     # Arrange
     mock_repo = Mock(spec=CountryRepository)
     mock_repo.delete_all = AsyncMock()
@@ -37,7 +37,7 @@ async def test_CSVファイルからのインポートが成功する():
 
 
 @pytest.mark.asyncio
-async def test_CSVファイルが存在しない場合FileNotFoundErrorが発生する():
+async def test_CSVファイルが存在しない場合FileNotFoundErrorが発生する() -> None:
     # Arrange
     mock_repo = Mock(spec=CountryRepository)
     mock_session = AsyncMock()
@@ -52,7 +52,7 @@ async def test_CSVファイルが存在しない場合FileNotFoundErrorが発生
 
 
 @pytest.mark.asyncio
-async def test_空のCSVファイルの場合0件が返される():
+async def test_空のCSVファイルの場合0件が返される() -> None:
     # Arrange
     mock_repo = Mock(spec=CountryRepository)
     mock_repo.delete_all = AsyncMock()

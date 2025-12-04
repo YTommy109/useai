@@ -4,7 +4,7 @@ import csv
 import io
 
 import markdown
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from openpyxl import Workbook
@@ -18,21 +18,53 @@ router = APIRouter()
 templates = Jinja2Templates(directory='src/templates')
 
 
-def generate_dummy_data() -> tuple[list[str], list[list[str]]]:
-    """ダミーデータを生成する。
+async def _get_report_data(
+    report_id: int, session: AsyncSession
+) -> tuple[list[str], list[list[str]]]:
+    """レポートデータを取得する。
+
+    Args:
+        report_id: レポートID。
+        session: 非同期データベースセッション。
 
     Returns:
         tuple[list[str], list[list[str]]]: ヘッダーと行データのタプル。
+
+    Raises:
+        HTTPException: レポートが見つからない場合。
     """
-    headers = [f'項目{i + 1}' for i in range(20)]
-    rows = []
-    for i in range(50):
-        row = [f'データ{i + 1}-{j + 1}' for j in range(20)]
-        # それっぽいデータを入れる
-        row[2] = '適合' if i % 3 == 0 else '要確認'
-        row[5] = 'あり' if i % 2 == 0 else 'なし'
-        rows.append(row)
-    return headers, rows
+    repo = ReportRepository(session)
+    service = ReportService(repo, session)
+
+    try:
+        return await service.get_report_content(report_id)
+    except ValueError as err:
+        raise HTTPException(status_code=404, detail='Report not found') from err
+
+
+def _create_excel_file(headers: list[str], rows: list[list[str]]) -> io.BytesIO:
+    """Excelファイルを作成する。
+
+    Args:
+        headers: ヘッダー行。
+        rows: データ行のリスト。
+
+    Returns:
+        io.BytesIO: Excelファイルのバイトストリーム。
+    """
+    wb = Workbook()
+    ws = wb.active
+    assert ws is not None  # type narrowing
+    ws.title = '生成結果'
+
+    ws.append(headers)
+    for row in rows:
+        ws.append(row)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output
 
 
 @router.get('/', response_class=HTMLResponse)
@@ -116,44 +148,29 @@ async def generate_document(
     )
 
 
-@router.post('/generate_table', response_class=HTMLResponse)
-async def generate_table(request: Request) -> HTMLResponse:
-    """ダミーのテーブルデータを生成する。
+@router.get('/reports/{report_id}/download_csv')
+async def download_csv(
+    report_id: int, session: AsyncSession = Depends(get_session)
+) -> StreamingResponse:
+    """レポートデータをCSV形式でダウンロードする。
 
     Args:
-        request: FastAPI リクエストオブジェクト。
-
-    Returns:
-        HTMLResponse: 生成されたテーブルを表示するレンダリングされたページ。
-    """
-    headers, rows = generate_dummy_data()
-
-    return templates.TemplateResponse(
-        request=request,
-        name='table_result.html',
-        context={
-            'headers': headers,
-            'rows': rows,
-        },
-    )
-
-
-@router.get('/download_csv')
-async def download_csv() -> StreamingResponse:
-    """生成結果データをCSV形式でダウンロードする。
+        report_id: レポートID。
+        session: 非同期データベースセッション。
 
     Returns:
         StreamingResponse: CSV形式のファイル。
-    """
-    headers, rows = generate_dummy_data()
 
-    # CSVデータを生成
+    Raises:
+        HTTPException: レポートが見つからない場合。
+    """
+    headers, rows = await _get_report_data(report_id, session)
+
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(headers)
     writer.writerows(rows)
 
-    # StreamingResponseで返す
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type='text/csv',
@@ -161,34 +178,25 @@ async def download_csv() -> StreamingResponse:
     )
 
 
-@router.get('/download_excel')
-async def download_excel() -> StreamingResponse:
-    """生成結果データをExcel形式でダウンロードする。
+@router.get('/reports/{report_id}/download_excel')
+async def download_excel(
+    report_id: int, session: AsyncSession = Depends(get_session)
+) -> StreamingResponse:
+    """レポートデータをExcel形式でダウンロードする。
+
+    Args:
+        report_id: レポートID。
+        session: 非同期データベースセッション。
 
     Returns:
         StreamingResponse: Excel形式のファイル。
+
+    Raises:
+        HTTPException: レポートが見つからない場合。
     """
-    headers, rows = generate_dummy_data()
+    headers, rows = await _get_report_data(report_id, session)
+    output = _create_excel_file(headers, rows)
 
-    # Excelワークブックを作成
-    wb = Workbook()
-    ws = wb.active
-    assert ws is not None  # type narrowing
-    ws.title = '生成結果'
-
-    # ヘッダーを書き込み
-    ws.append(headers)
-
-    # データを書き込み
-    for row in rows:
-        ws.append(row)
-
-    # バイトストリームに保存
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    # StreamingResponseで返す
     return StreamingResponse(
         output,
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

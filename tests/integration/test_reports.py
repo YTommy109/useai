@@ -7,7 +7,7 @@ from src.db.models import Report, ReportStatus
 
 
 @pytest.mark.asyncio
-async def test_report_lifecycle(async_client: AsyncClient, session: AsyncSession):
+async def test_report_lifecycle(async_client: AsyncClient, session: AsyncSession) -> None:
     # 1. 初期状態: レポート一覧は空（または既存のもののみ）
     response = await async_client.get('/')
     assert response.status_code == 200

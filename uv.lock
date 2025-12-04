@@ -2783,6 +2783,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-markdown"
+version = "3.10.0.20251106"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/e4/060f0dadd9b551cae77d6407f2bc84b168f918d90650454aff219c1b3ed2/types_markdown-3.10.0.20251106.tar.gz", hash = "sha256:12836f7fcbd7221db8baeb0d3a2f820b95050d0824bfa9665c67b4d144a1afa1", size = 19486, upload-time = "2025-11-06T03:06:44.317Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/58/f666ca9391f2a8bd33bb0b0797cde6ac3e764866708d5f8aec6fab215320/types_markdown-3.10.0.20251106-py3-none-any.whl", hash = "sha256:2c39512a573899b59efae07e247ba088a75b70e3415e81277692718f430afd7e", size = 25862, upload-time = "2025-11-06T03:06:43.082Z" },
+]
+
+[[package]]
 name = "types-openpyxl"
 version = "3.1.5.20250919"
 source = { registry = "https://pypi.org/simple" }
@@ -2915,6 +2924,7 @@ dev = [
     { name = "pytest-sugar" },
     { name = "pytest-testmon" },
     { name = "pytest-xdist" },
+    { name = "types-markdown" },
     { name = "types-openpyxl" },
     { name = "types-pillow" },
     { name = "vulture" },
@@ -2967,6 +2977,7 @@ requires-dist = [
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.44" },
     { name = "sqlmodel", specifier = ">=0.0.16" },
     { name = "taskipy", specifier = ">=1.14.1" },
+    { name = "types-markdown", marker = "extra == 'dev'", specifier = ">=3.10.0.20251106" },
     { name = "types-openpyxl", marker = "extra == 'dev'", specifier = ">=3.1.5.20250602" },
     { name = "types-pillow", marker = "extra == 'dev'", specifier = ">=10.2.0" },
     { name = "uvicorn", specifier = ">=0.29.0" },

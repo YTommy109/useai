@@ -40,7 +40,6 @@ class BaseRepository[ModelType: SQLModel]:
     async def delete_all(self) -> None:
         """データベースからすべてのレコードを削除する。"""
         await self.session.exec(delete(self.model))
-        await self.session.commit()
 
     async def get_all(self) -> list[ModelType]:
         """データベースからすべてのレコードを取得する。
@@ -72,7 +71,7 @@ class BaseRepository[ModelType: SQLModel]:
             ModelType: 作成されたモデルインスタンス。
         """
         self.session.add(instance)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(instance)
         return instance
 
@@ -86,7 +85,7 @@ class BaseRepository[ModelType: SQLModel]:
             ModelType: 更新されたモデルインスタンス。
         """
         self.session.add(instance)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(instance)
         return instance
 

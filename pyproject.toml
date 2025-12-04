@@ -40,7 +40,7 @@ dev = [
     "coverage[toml]>=7.10",
     "docstring-parser>=0.17",
     "freezegun>=1.5.3",
-    "httpx>=0.27.0",                  # FastAPIテスト用
+    "httpx>=0.27.0",                   # FastAPIテスト用
     "mypy>=1.17.0",
     "pandas-stubs>=2.0",
     "pdoc3>=0.11",
@@ -55,6 +55,7 @@ dev = [
     "pytest-testmon>=2.1.3",
     "pytest-xdist>=3.0",
     "pytest-sugar>=1.0",
+    "types-markdown>=3.10.0.20251106",
     "types-openpyxl>=3.1.5.20250602",
     "types-Pillow>=10.2.0",
     "vulture>=2.14",
@@ -70,7 +71,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-markers = []  # asyncio は pytest-asyncio が自動登録するため不要
+markers = []                 # asyncio は pytest-asyncio が自動登録するため不要
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 # addopts = "--browser chromium --browser firefox --browser webkit"
@@ -118,19 +119,19 @@ select = [
 ]
 
 ignore = [
-    "COM812", # trailing-comma-missing（formatterと競合するため無効化）
-    "ISC001", # single-line-implicit-string-concatenation（formatterと競合）
-    "RUF003", # ambiguous-unicode-character-comment（日本語コメントを許可）
-    "RUF002", # ambiguous-unicode-character-docstring（日本語ドキュメントを許可）
-    "RUF001", # ambiguous-unicode-character-string（日本語文字列を許可）
+    "COM812",  # trailing-comma-missing（formatterと競合するため無効化）
+    "ISC001",  # single-line-implicit-string-concatenation（formatterと競合）
+    "RUF003",  # ambiguous-unicode-character-comment（日本語コメントを許可）
+    "RUF002",  # ambiguous-unicode-character-docstring（日本語ドキュメントを許可）
+    "RUF001",  # ambiguous-unicode-character-string（日本語文字列を許可）
     "PLC2401", # non-ascii-name（日本語変数名を許可）
-    "S101",   # Use of assert（テスト等で使用）
-    "S603",   # subprocess-without-shell-equals-true（セキュリティ上必要な場合あり）
-    "FBT001", # Boolean positional arg in function definition（設定値で使用）
-    "FBT002", # Boolean default value in function definition（フラグパラメータで使用）
-    "D100",   # Missing docstring in public module
-    "D104",   # Missing docstring in public package
-    "D415",   # First line should end with period (日本語の句点は認識されない)
+    "S101",    # Use of assert（テスト等で使用）
+    "S603",    # subprocess-without-shell-equals-true（セキュリティ上必要な場合あり）
+    "FBT001",  # Boolean positional arg in function definition（設定値で使用）
+    "FBT002",  # Boolean default value in function definition（フラグパラメータで使用）
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+    "D415",    # First line should end with period (日本語の句点は認識されない)
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -217,8 +218,8 @@ max-statements = 15 # 関数内の文の最大数
     "PLC0415", # import文の位置制限緩和
 ]
 "src/routers/**" = [
-    "ARG001",  # 未使用引数許可 (FastAPI dependency injection)
-    "B008",    # Form() in defaults is FastAPI pattern
+    "ARG001", # 未使用引数許可 (FastAPI dependency injection)
+    "B008",   # Form() in defaults is FastAPI pattern
 ]
 "src/logger.py" = [
     "PLC0415", # import文の位置制限緩和
@@ -229,18 +230,18 @@ max-statements = 15 # 関数内の文の最大数
     "PLR0915", # init_db statements are acceptable
 ]
 "src/db/schema.py" = [
-    "T201",    # print is intentional for DDL output
-    "ARG001",  # dump function signature required by SQLAlchemy
-    "ANN401",  # Any types required for SQLAlchemy callback signature
+    "T201",   # print is intentional for DDL output
+    "ARG001", # dump function signature required by SQLAlchemy
+    "ANN401", # Any types required for SQLAlchemy callback signature
 ]
 "migrations/**" = [
-    "ERA001",  # コメントアウトコード許可 (Alembic generated comments)
-    "D103",    # docstring不要
-    "ANN",     # 型注釈不要
+    "ERA001", # コメントアウトコード許可 (Alembic generated comments)
+    "D103",   # docstring不要
+    "ANN",    # 型注釈不要
 ]
 "scripts/**" = [
-    "T201",    # print文許可 (CLI scripts)
-    "S310",    # URL open許可 (download scripts)
+    "T201", # print文許可 (CLI scripts)
+    "S310", # URL open許可 (download scripts)
 ]
 
 # =====================================
@@ -249,33 +250,37 @@ max-statements = 15 # 関数内の文の最大数
 
 [tool.mypy]
 python_version = "3.12" # 対象Pythonバージョン
-strict = true           # 厳格モード有効
+strict = true # 厳格モード有効
 show_error_codes = true # エラーコードを表示
-pretty = true           # 色付きで見やすいエラー表示
-exclude = ["tests"]
+pretty = true # 色付きで見やすいエラー表示
+exclude = []
 enable_error_code = [
-    "truthy-bool", "redundant-expr", "unused-awaitable", "ignore-without-code", "possibly-undefined"
+    "truthy-bool",
+    "redundant-expr",
+    "unused-awaitable",
+    "ignore-without-code",
+    "possibly-undefined",
 ] # 追加チェック有効化
-ignore_missing_imports = true   # 型情報がないモジュールのimportエラーを無視
-disallow_any_unimported = true  # 外部ライブラリのAny型も可能な限り制限
-disallow_any_expr = false       # 外部ライブラリからのAny式は許容
-disallow_any_decorated = false  # デコレータからのAny型は許容
-disallow_untyped_calls = false  # 外部ライブラリの型なし呼び出しを許容
-warn_unreachable = true         # 到達不能コードの警告
-warn_redundant_casts = true     # 不要な型キャストを検出
-warn_unused_ignores = true      # 不要な # type: ignore を検出
-warn_return_any = true          # Any を返すコードで警告
-check_untyped_defs = true       # 型注釈のない関数の内部もチェック
-strict_equality = true          # 型安全でない等価比較を検出
-warn_no_return = true           # 戻り値がない関数での問題を検出
-warn_incomplete_stub = true     # スタブファイルの不完全性を警告
+ignore_missing_imports = true # 型情報がないモジュールのimportエラーを無視
+disallow_any_unimported = true # 外部ライブラリのAny型も可能な限り制限
+disallow_any_expr = false # 外部ライブラリからのAny式は許容
+disallow_any_decorated = false # デコレータからのAny型は許容
+disallow_untyped_calls = false # 外部ライブラリの型なし呼び出しを許容
+warn_unreachable = true # 到達不能コードの警告
+warn_redundant_casts = true # 不要な型キャストを検出
+warn_unused_ignores = true # 不要な # type: ignore を検出
+warn_return_any = true # Any を返すコードで警告
+check_untyped_defs = true # 型注釈のない関数の内部もチェック
+strict_equality = true # 型安全でない等価比較を検出
+warn_no_return = true # 戻り値がない関数での問題を検出
+warn_incomplete_stub = true # スタブファイルの不完全性を警告
 
 [[tool.mypy.overrides]]
 module = ["tests.*", "tests_e2e.*"]
-disallow_untyped_defs = false       # テストで関数の型注釈必須制御
+disallow_untyped_defs = true        # テストで関数の型注釈必須制御
 disallow_any_explicit = true        # テストで明示的なAny型の使用制御
 disallow_any_generics = true        # テストでジェネリックAny型の使用制御
-warn_return_any = false             # テストでAny型の戻り値警告制御
+warn_return_any = true              # テストでAny型の戻り値警告制御
 
 # =====================================
 # coverage設定
@@ -286,11 +291,7 @@ data_file = ".coverage/coverage"
 
 [tool.coverage.run]
 source = ["src"]
-omit = [
-    "tests/*",
-    "*/conftest.py",
-    "src/main.py",
-]
+omit = ["tests/*", "*/conftest.py", "src/main.py"]
 branch = true
 
 [tool.coverage.report]
@@ -330,10 +331,10 @@ ignore_decorators = [
 ]
 ignore_names = [
     "drop_params",
-    "id",  # SQLModel フィールド
-    "multiparams",  # SQLAlchemy コールバック引数
-    "params",  # SQLAlchemy コールバック引数
-    "title",  # openpyxl ワークシート属性
+    "id",          # SQLModel フィールド
+    "multiparams", # SQLAlchemy コールバック引数
+    "params",      # SQLAlchemy コールバック引数
+    "title",       # openpyxl ワークシート属性
 ]
 
 # =====================================
@@ -349,7 +350,7 @@ prod = "uvicorn src.main:app --host 0.0.0.0 --port 8000"
 test = "pytest --testmon"
 test-ut = "pytest --testmon tests/unit"
 test-it = "pytest --testmon tests/integration"
-test-ci = "pytest tests"  # CI では全テストを実行
+test-ci = "pytest tests"                                # CI では全テストを実行
 test-all = "pytest"
 coverage = "pytest --cov=src --cov-report=term-missing"
 
@@ -376,4 +377,3 @@ docs = "pdoc app --html --output-dir docs"
 
 # すべてのチェックとテスト
 test-all-checks = "task lint && task coverage"
-

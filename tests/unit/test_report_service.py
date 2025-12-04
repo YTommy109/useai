@@ -1,33 +1,38 @@
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
+import pytest_mock
 
 from src.db.models import Report, ReportStatus
 from src.services.report_service import ReportService
 
 
 @pytest.fixture
-def mock_repo(mocker):
-    return mocker.AsyncMock()
+def mock_repo() -> AsyncMock:
+    return AsyncMock()
 
 
 @pytest.fixture
-def mock_session(mocker):
-    return mocker.AsyncMock()
+def mock_session() -> AsyncMock:
+    return AsyncMock()
 
 
 @pytest.fixture
-def service(mock_repo, mock_session):
+def service(mock_repo: AsyncMock, mock_session: AsyncMock) -> ReportService:
     return ReportService(mock_repo, mock_session)
 
 
 @pytest.mark.asyncio
-async def test_レポート作成が成功する(service, mock_repo, mock_session, mocker):
+async def test_レポート作成が成功する(
+    service: ReportService,
+    mock_repo: AsyncMock,
+    mock_session: AsyncMock,
+    mocker: pytest_mock.MockerFixture,
+) -> None:
     # Arrange
     prompt = 'Test Prompt'
-    countries = ['Country A']
-    regulations = ['Regulation B']
 
     mock_report = Report(
         id=1,
@@ -49,7 +54,7 @@ async def test_レポート作成が成功する(service, mock_repo, mock_sessio
     mock_file = mocker.patch('builtins.open', mocker.mock_open())
 
     # Act
-    result = await service.create_report(prompt, countries, regulations)
+    result = await service.create_report(prompt)
 
     # Assert
     assert result == mock_report
@@ -60,7 +65,9 @@ async def test_レポート作成が成功する(service, mock_repo, mock_sessio
 
 
 @pytest.mark.asyncio
-async def test_レポート内容の取得が成功する(service, mock_repo, mocker):
+async def test_レポート内容の取得が成功する(
+    service: ReportService, mock_repo: AsyncMock, mocker: pytest_mock.MockerFixture
+) -> None:
     # Arrange
     report_id = 1
     mock_report = Report(

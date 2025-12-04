@@ -1,12 +1,16 @@
 import pytest
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
+from sqlmodel import col, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.db.models import Report
 
 # Fixtures are now in conftest.py
 
 
 @pytest.mark.asyncio
-async def test_メインページが表示される(client: TestClient):
+async def test_メインページが表示される(client: TestClient) -> None:
     # Arrange
     # No specific arrangement needed beyond fixture setup
 
@@ -23,7 +27,7 @@ async def test_メインページが表示される(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_国を選択してドキュメントを生成できる(client: TestClient):
+async def test_国を選択してドキュメントを生成できる(client: TestClient) -> None:
     # Arrange
     payload = {'countries': ['Test Country A'], 'regulations': []}
 
@@ -36,7 +40,7 @@ async def test_国を選択してドキュメントを生成できる(client: Te
 
 
 @pytest.mark.asyncio
-async def test_規制を選択してドキュメントを生成できる(client: TestClient):
+async def test_規制を選択してドキュメントを生成できる(client: TestClient) -> None:
     # Arrange
     payload = {'countries': [], 'regulations': ['Test Regulation 1']}
 
@@ -49,7 +53,7 @@ async def test_規制を選択してドキュメントを生成できる(client:
 
 
 @pytest.mark.asyncio
-async def test_国と規制を両方選択してドキュメントを生成できる(client: TestClient):
+async def test_国と規制を両方選択してドキュメントを生成できる(client: TestClient) -> None:
     # Arrange
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
 
@@ -64,8 +68,8 @@ async def test_国と規制を両方選択してドキュメントを生成で�
     debug_content = soup.find(id='prompt-debug-content')
     assert debug_content is not None
     assert 'ゴール: これはダミーのプロンプトです。' in debug_content.text
-    assert '<li>Test Country A</li>' in str(debug_content)
-    assert '<li>Test Regulation 1</li>' in str(debug_content)
+    assert 'Test Country A' in debug_content.text
+    assert 'Test Regulation 1' in debug_content.text
 
     # 選択状態の維持を確認 (checked属性)
     country_checkbox = soup.find('input', {'value': 'Test Country A'})
@@ -83,9 +87,9 @@ async def test_国と規制を両方選択してドキュメントを生成で�
 
 
 @pytest.mark.asyncio
-async def test_何も選択しないと実行ボタンが無効になる(client: TestClient):
+async def test_何も選択しないと実行ボタンが無効になる(client: TestClient) -> None:
     # Arrange
-    payload = {'countries': [], 'regulations': []}
+    payload: dict[str, list[str]] = {'countries': [], 'regulations': []}
 
     # Act
     response = client.post('/generate_document', data=payload)
@@ -106,7 +110,7 @@ async def test_何も選択しないと実行ボタンが無効になる(client:
 
 
 @pytest.mark.asyncio
-async def test_アコーディオンの開閉状態が維持される(client: TestClient):
+async def test_アコーディオンの開閉状態が維持される(client: TestClient) -> None:
     # Arrange - アコーディオンを開いた状態で送信
     payload = {
         'countries': ['Test Country A'],
@@ -143,9 +147,22 @@ async def test_アコーディオンの開閉状態が維持される(client: Te
 
 
 @pytest.mark.asyncio
-async def test_テーブルを生成できる(client: TestClient):
-    # Act
-    response = client.post('/generate_table')
+async def test_テーブルを生成できる(client: TestClient, session: AsyncSession) -> None:
+    # Arrange - レポートを作成
+    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
+    create_response = client.post('/reports', data=payload)
+    assert create_response.status_code == 200
+
+    # 作成されたレポートIDをデータベースから取得
+    result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
+    reports = list(result.all())
+    assert len(reports) >= 1
+    latest_report = reports[0]  # 最新のレポート（作成日時の降順で最初）
+    report_id = latest_report.id
+    assert report_id is not None
+
+    # Act - プレビューを取得
+    response = client.get(f'/reports/{report_id}/preview')
 
     # Assert
     assert response.status_code == 200
@@ -154,9 +171,22 @@ async def test_テーブルを生成できる(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_CSVダウンロードができる(client: TestClient):
+async def test_CSVダウンロードができる(client: TestClient, session: AsyncSession) -> None:
+    # Arrange - レポートを作成
+    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
+    create_response = client.post('/reports', data=payload)
+    assert create_response.status_code == 200
+
+    # 作成されたレポートIDをデータベースから取得
+    result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
+    reports = list(result.all())
+    assert len(reports) >= 1
+    latest_report = reports[0]  # 最新のレポート（作成日時の降順で最初）
+    report_id = latest_report.id
+    assert report_id is not None
+
     # Act
-    response = client.get('/download_csv')
+    response = client.get(f'/reports/{report_id}/download_csv')
 
     # Assert
     assert response.status_code == 200
@@ -171,9 +201,22 @@ async def test_CSVダウンロードができる(client: TestClient):
 
 
 @pytest.mark.asyncio
-async def test_Excelダウンロードができる(client: TestClient):
+async def test_Excelダウンロードができる(client: TestClient, session: AsyncSession) -> None:
+    # Arrange - レポートを作成
+    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
+    create_response = client.post('/reports', data=payload)
+    assert create_response.status_code == 200
+
+    # 作成されたレポートIDをデータベースから取得
+    result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
+    reports = list(result.all())
+    assert len(reports) >= 1
+    latest_report = reports[0]  # 最新のレポート（作成日時の降順で最初）
+    report_id = latest_report.id
+    assert report_id is not None
+
     # Act
-    response = client.get('/download_excel')
+    response = client.get(f'/reports/{report_id}/download_excel')
 
     # Assert
     assert response.status_code == 200

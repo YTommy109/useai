@@ -41,7 +41,7 @@ async def create_report(
     # プロンプト生成
     prompt = ReportService.generate_prompt_text(countries, regulations)
 
-    await service.create_report(prompt, countries, regulations)
+    await service.create_report(prompt)
 
     # 一覧を再取得して返す
     reports = await repo.get_all_desc()
@@ -99,5 +99,5 @@ async def preview_report(
     return templates.TemplateResponse(
         request=request,
         name='components/report_preview.html',
-        context={'headers': headers, 'rows': rows},
+        context={'report_id': report_id, 'headers': headers, 'rows': rows},
     )

@@ -54,43 +54,46 @@ class ReportService:
 
         return '\n'.join(prompt_lines)
 
-    async def create_report(
-        self, prompt: str, countries: list[str], regulations: list[str]
-    ) -> Report:
+    async def create_report(self, prompt: str) -> Report:
         """レポートを作成する。
 
         Args:
             prompt: プロンプト。
-            countries: 選択された国名のリスト。
-            regulations: 選択された規制名のリスト。
 
         Returns:
             Report: 作成されたレポート。
         """
-        # TODO: 将来的に使用するため、引数は保持するが現在は使用しない
-        _ = countries
-        _ = regulations
+        report = await self._create_report_record()
+        await self.session.commit()
 
+        try:
+            self._save_report_files(report.directory_path, prompt)
+            await self._update_status(report, ReportStatus.COMPLETED)
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            await self._update_status(report, ReportStatus.FAILED)
+            await self.session.commit()
+            raise
+
+        return report
+
+    async def _create_report_record(self) -> Report:
+        """レポートレコードを作成する。
+
+        Returns:
+            Report: 作成されたレポートレコード。
+        """
         now = datetime.now(UTC)
         timestamp = now.strftime('%Y%m%d_%H%M%S')
         directory_path = f'data/reports/{timestamp}'
 
-        # DBにprocessing状態で保存
         report = Report(
             created_at=now,
             status=ReportStatus.PROCESSING,
             directory_path=directory_path,
         )
-        report = await self.repository.create(report)
-
-        try:
-            self._save_report_files(directory_path, prompt)
-            await self._update_status(report, ReportStatus.COMPLETED)
-        except Exception:
-            await self._update_status(report, ReportStatus.FAILED)
-            raise
-
-        return report
+        return await self.repository.create(report)
 
     async def _update_status(self, report: Report, status: ReportStatus) -> None:
         """レポートのステータスを更新する。"""
@@ -113,7 +116,7 @@ class ReportService:
             f.write(prompt)
 
         # ダミーデータ生成
-        headers, rows = self._generate_dummy_data()
+        headers, rows = ReportService.generate_dummy_data()
 
         # result.tsv保存
         with open(path / 'result.tsv', 'w', encoding='utf-8', newline='') as f:
@@ -147,7 +150,8 @@ class ReportService:
             data = rows[1:]
             return headers, data
 
-    def _generate_dummy_data(self) -> tuple[list[str], list[list[str]]]:
+    @staticmethod
+    def generate_dummy_data() -> tuple[list[str], list[list[str]]]:
         """ダミーデータを生成する。
 
         Returns:

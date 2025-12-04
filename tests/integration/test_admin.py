@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 from unittest.mock import mock_open, patch
 
 import pytest
@@ -22,7 +23,7 @@ engine = create_async_engine(
 
 
 @pytest.fixture(name='session')
-async def session_fixture():
+async def session_fixture() -> AsyncGenerator[AsyncSession, None]:
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
@@ -35,8 +36,8 @@ async def session_fixture():
 
 
 @pytest.fixture(name='client')
-async def client_fixture(session: AsyncSession):
-    async def get_session_override():
+async def client_fixture(session: AsyncSession) -> AsyncGenerator[TestClient, None]:
+    async def get_session_override() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
     app.dependency_overrides[get_session] = get_session_override
@@ -46,7 +47,9 @@ async def client_fixture(session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_管理ダッシュボードの統計が表示される(client: TestClient, session: AsyncSession):
+async def test_管理ダッシュボードの統計が表示される(
+    client: TestClient, session: AsyncSession
+) -> None:
     # Arrange: 初期データを追加
     session.add(Country(name='初期国', continent='アジア'))
     session.add(Regulation(name='初期規制'))
@@ -70,7 +73,7 @@ async def test_管理ダッシュボードの統計が表示される(client: Te
 
 
 @pytest.mark.asyncio
-async def test_国データをインポートできる(client: TestClient, session: AsyncSession):
+async def test_国データをインポートできる(client: TestClient, session: AsyncSession) -> None:
     # Arrange: CSVファイル読み込みをモック化
     csv_content = 'name,continent\n新規国1,欧州\n新規国2,アジア'
 
@@ -96,7 +99,7 @@ async def test_国データをインポートできる(client: TestClient, sessi
 
 
 @pytest.mark.asyncio
-async def test_規制データをインポートできる(client: TestClient, session: AsyncSession):
+async def test_規制データをインポートできる(client: TestClient, session: AsyncSession) -> None:
     # Arrange: CSVファイル読み込みをモック化
     csv_content = 'name\n新規規制1\n新規規制2'
 
@@ -121,7 +124,7 @@ async def test_規制データをインポートできる(client: TestClient, se
 
 
 @pytest.mark.asyncio
-async def test_国データCSVファイルがないと404エラーが返る(client: TestClient):
+async def test_国データCSVファイルがないと404エラーが返る(client: TestClient) -> None:
     # Arrange: ファイルが存在しないことをモック
     with patch('src.routers.admin.Path.exists', return_value=False):
         # Act
@@ -133,7 +136,7 @@ async def test_国データCSVファイルがないと404エラーが返る(clie
 
 
 @pytest.mark.asyncio
-async def test_規制データCSVファイルがないと404エラーが返る(client: TestClient):
+async def test_規制データCSVファイルがないと404エラーが返る(client: TestClient) -> None:
     # Arrange: ファイルが存在しないことをモック
     with patch('src.routers.admin.Path.exists', return_value=False):
         # Act
@@ -147,7 +150,7 @@ async def test_規制データCSVファイルがないと404エラーが返る(c
 @pytest.mark.asyncio
 async def test_国データ空のCSVをインポートすると0件になる(
     client: TestClient, session: AsyncSession
-):
+) -> None:
     # Arrange: ヘッダーのみのCSVファイル
     csv_content = 'name,continent\n'
 
@@ -171,7 +174,7 @@ async def test_国データ空のCSVをインポートすると0件になる(
 @pytest.mark.asyncio
 async def test_規制データ空のCSVをインポートすると0件になる(
     client: TestClient, session: AsyncSession
-):
+) -> None:
     # Arrange: ヘッダーのみのCSVファイル
     csv_content = 'name\n'
 

@@ -57,6 +57,7 @@ class CountryService:
             for row in reader:
                 self.session.add(Country(name=row['name'], continent=row['continent']))
 
+        # トランザクションをコミット
         await self.session.commit()
 
         # 件数を返す
@@ -107,6 +108,7 @@ class RegulationService:
             for row in reader:
                 self.session.add(Regulation(name=row['name']))
 
+        # トランザクションをコミット
         await self.session.commit()
 
         # 件数を返す
