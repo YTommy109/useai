@@ -3,6 +3,7 @@
 import csv
 import io
 
+import markdown
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
@@ -11,6 +12,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.engine import get_session
 from src.db.repository import CountryRepository, RegulationRepository, ReportRepository
+from src.services.report_service import ReportService
 
 router = APIRouter()
 templates = Jinja2Templates(directory='src/templates')
@@ -107,6 +109,9 @@ async def generate_document(
             'open_accordions': open_accordions,
             'is_executable': bool(countries or regulations),
             'reports': reports,
+            'prompt_html': markdown.markdown(
+                ReportService.generate_prompt_text(countries, regulations)
+            ),
         },
     )
 

@@ -22,6 +22,38 @@ class ReportService:
         self.repository = repository
         self.session = session
 
+    @staticmethod
+    def generate_prompt_text(countries: list[str], regulations: list[str]) -> str:
+        """プロンプトテキストを生成する。
+
+        Args:
+            countries: 選択された国名のリスト。
+            regulations: 選択された規制名のリスト。
+
+        Returns:
+            str: 生成されたプロンプトテキスト。
+        """
+        prompt_lines = [
+            'ゴール: これはダミーのプロンプトです。',
+            '',
+            'ヘッダー部: プロンプトヘッダー部です。',
+            '',
+            '条件部:',
+            '国:',
+        ]
+        for country in countries:
+            prompt_lines.append(f'- {country}')
+
+        prompt_lines.append('')
+        prompt_lines.append('法規:')
+        for regulation in regulations:
+            prompt_lines.append(f'- {regulation}')
+
+        prompt_lines.append('')
+        prompt_lines.append('詳細: ここは詳細が入ります。')
+
+        return '\n'.join(prompt_lines)
+
     async def create_report(
         self, prompt: str, countries: list[str], regulations: list[str]
     ) -> Report:

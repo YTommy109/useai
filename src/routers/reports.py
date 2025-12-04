@@ -38,8 +38,8 @@ async def create_report(
     repo = ReportRepository(session)
     service = ReportService(repo, session)
 
-    # プロンプト生成（簡易的）
-    prompt = f'Countries: {", ".join(countries)}\nRegulations: {", ".join(regulations)}'
+    # プロンプト生成
+    prompt = ReportService.generate_prompt_text(countries, regulations)
 
     await service.create_report(prompt, countries, regulations)
 

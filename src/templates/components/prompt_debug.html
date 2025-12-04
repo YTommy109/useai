@@ -1,26 +1,7 @@
 <div id="prompt-debug-content" class="pico-background-slate-50 c-debug-content" style="white-space: normal;">
     {% if selected_countries or selected_regulations %}
     <div class="prompt-debug-container">
-        <div>ゴール: これはダミーのプロンプトです。</div>
-        <br>
-        <div>ヘッダー部: プロンプトヘッダー部です。</div>
-        <br>
-        <div>条件部:</div>
-        <div>国:</div>
-        <ul>
-            {% for country in selected_countries %}
-            <li>{{ country }}</li>
-            {% endfor %}
-        </ul>
-
-        <div>法規:</div>
-        <ul>
-            {% for regulation in selected_regulations %}
-            <li>{{ regulation }}</li>
-            {% endfor %}
-        </ul>
-
-        <div>詳細: ここは詳細が入ります。</div>
+        {{ prompt_html | safe }}
     </div>
     {% else %}
     （ここに生成された文書が表示されます）

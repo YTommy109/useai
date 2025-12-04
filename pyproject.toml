@@ -31,6 +31,7 @@ dependencies = [
     "sqlmodel>=0.0.16",
     "alembic>=1.17.2",
     "taskipy>=1.14.1",
+    "markdown>=3.10",
 ]
 
 [project.optional-dependencies]
