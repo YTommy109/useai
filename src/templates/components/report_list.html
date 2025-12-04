@@ -14,7 +14,7 @@
                 {% for report in reports %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ report.created_at | datetimeformat }}</td>
+                    <td>{{ report.created_at_jst | datetimeformat }}</td>
                     <td>
                         <span class="c-status-badge c-status-badge--{{ report.status }}">
                             {{ report.status }}

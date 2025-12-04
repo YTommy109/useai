@@ -330,6 +330,7 @@ ignore_decorators = [
     "@router.patch",
 ]
 ignore_names = [
+    "created_at_jst", # Jinja2テンプレートで使用されるプロパティ
     "drop_params",
     "id",          # SQLModel フィールド
     "multiparams", # SQLAlchemy コールバック引数
@@ -359,6 +360,7 @@ ruff = "ruff format . && ruff check --fix ."
 vulture = "vulture src"
 mypy = "mypy ."
 lint = "task ruff && task vulture && task mypy"
+ty = "uvx ty check"
 
 # 依存関係管理
 sync = "uv sync --extra dev"

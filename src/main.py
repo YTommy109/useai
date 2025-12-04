@@ -6,29 +6,12 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from src.logger import init_logger, logger
 from src.routers import admin, pages, reports
-
-
-def datetimeformat(value: datetime) -> str:
-    """datetimeオブジェクトを読みやすい形式に変換する。"""
-    return value.strftime('%Y/%m/%d %H:%M:%S')
-
-
-# 共通のテンプレートインスタンスを作成
-templates = Jinja2Templates(directory='src/templates')
-templates.env.filters['datetimeformat'] = datetimeformat
-
-# 各ルーターに共通テンプレートを設定
-pages.templates = templates
-reports.templates = templates
-admin.templates = templates
 
 
 @asynccontextmanager

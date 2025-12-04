@@ -5,32 +5,38 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.engine import get_session
 from src.db.repository import CountryRepository, RegulationRepository
 from src.db.service import CountryService, RegulationService
+from src.dependencies import (
+    get_country_repository,
+    get_country_service,
+    get_regulation_repository,
+    get_regulation_service,
+    get_templates,
+)
 
 router = APIRouter(prefix='/admin', tags=['admin'])
-templates = Jinja2Templates(directory='src/templates')
 
 
 @router.get('/', response_class=HTMLResponse)
 async def admin_dashboard(
-    request: Request, session: AsyncSession = Depends(get_session)
+    request: Request,
+    country_repo: CountryRepository = Depends(get_country_repository),
+    regulation_repo: RegulationRepository = Depends(get_regulation_repository),
+    templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
     """管理ダッシュボードを表示する。
 
     Args:
         request: FastAPI リクエストオブジェクト。
-        session: 非同期データベースセッション。
+        country_repo: 国リポジトリ。
+        regulation_repo: 規制リポジトリ。
+        templates: Jinja2テンプレートインスタンス。
 
     Returns:
         HTMLResponse: 管理ダッシュボードページ。
     """
-    country_repo = CountryRepository(session)
-    regulation_repo = RegulationRepository(session)
-
     country_count = await country_repo.count()
     regulation_count = await regulation_repo.count()
 
@@ -46,7 +52,7 @@ async def admin_dashboard(
 
 @router.post('/import/countries', response_class=HTMLResponse)
 async def import_countries(
-    session: AsyncSession = Depends(get_session),
+    service: CountryService = Depends(get_country_service),
 ) -> HTMLResponse:
     """config/countries.csv から国データをインポートする。
 
@@ -54,14 +60,11 @@ async def import_countries(
     HTMXリクエストに対して、更新後の件数を返します。
 
     Args:
-        session: 非同期データベースセッション。
+        service: 国サービス。
 
     Returns:
         HTMLResponse: 更新後の国データ件数。
     """
-    country_repo = CountryRepository(session)
-    service = CountryService(country_repo, session)
-
     try:
         count = await service.import_from_csv(Path('data/csv/countries.csv'))
         return HTMLResponse(str(count))
@@ -71,7 +74,7 @@ async def import_countries(
 
 @router.post('/import/regulations', response_class=HTMLResponse)
 async def import_regulations(
-    session: AsyncSession = Depends(get_session),
+    service: RegulationService = Depends(get_regulation_service),
 ) -> HTMLResponse:
     """config/regulations.csv から規制データをインポートする。
 
@@ -79,14 +82,11 @@ async def import_regulations(
     HTMXリクエストに対して、更新後の件数を返します。
 
     Args:
-        session: 非同期データベースセッション。
+        service: 規制サービス。
 
     Returns:
         HTMLResponse: 更新後の規制データ件数。
     """
-    regulation_repo = RegulationRepository(session)
-    service = RegulationService(regulation_repo, session)
-
     try:
         count = await service.import_from_csv(Path('data/csv/regulations.csv'))
         return HTMLResponse(str(count))

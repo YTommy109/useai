@@ -6,26 +6,23 @@ import io
 import markdown
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
 from openpyxl import Workbook
-from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.engine import get_session
-from src.db.repository import CountryRepository, RegulationRepository, ReportRepository
+from src.dependencies import PageDependencies, get_page_dependencies, get_report_service
 from src.services.report_service import ReportService
 
 router = APIRouter()
-templates = Jinja2Templates(directory='src/templates')
 
 
 async def _get_report_data(
-    report_id: int, session: AsyncSession
+    report_id: int,
+    service: ReportService = Depends(get_report_service),
 ) -> tuple[list[str], list[list[str]]]:
     """レポートデータを取得する。
 
     Args:
         report_id: レポートID。
-        session: 非同期データベースセッション。
+        service: レポートサービス。
 
     Returns:
         tuple[list[str], list[list[str]]]: ヘッダーと行データのタプル。
@@ -33,9 +30,6 @@ async def _get_report_data(
     Raises:
         HTTPException: レポートが見つからない場合。
     """
-    repo = ReportRepository(session)
-    service = ReportService(repo, session)
-
     try:
         return await service.get_report_content(report_id)
     except ValueError as err:
@@ -68,27 +62,22 @@ def _create_excel_file(headers: list[str], rows: list[list[str]]) -> io.BytesIO:
 
 
 @router.get('/', response_class=HTMLResponse)
-async def read_root(request: Request, session: AsyncSession = Depends(get_session)) -> HTMLResponse:
+async def read_root(
+    request: Request,
+    deps: PageDependencies = Depends(get_page_dependencies),
+) -> HTMLResponse:
     """国と規制を含むメインページをレンダリングする。
 
     Args:
         request: FastAPI リクエストオブジェクト。
-        session: 非同期データベースセッション。
+        deps: ページ表示に必要な依存性。
 
     Returns:
         HTMLResponse: 国と規制を含むレンダリングされたインデックスページ。
     """
-    country_repo = CountryRepository(session)
-    regulation_repo = RegulationRepository(session)
+    grouped_countries, regulations, reports = await deps.page_service.get_main_page_data()
 
-    grouped_countries = await country_repo.get_grouped_by_continent()
-    regulations = await regulation_repo.get_all_names()
-
-    # レポート一覧を取得
-    report_repo = ReportRepository(session)
-    reports = await report_repo.get_all_desc()
-
-    return templates.TemplateResponse(
+    return deps.templates.TemplateResponse(
         request=request,
         name='index.html',
         context={
@@ -105,7 +94,7 @@ async def generate_document(
     countries: list[str] = Form(default=[]),
     regulations: list[str] = Form(default=[]),
     open_accordions: list[str] = Form(default=[]),
-    session: AsyncSession = Depends(get_session),
+    deps: PageDependencies = Depends(get_page_dependencies),
 ) -> HTMLResponse:
     """選択された国と規制に基づいて文書を生成し、メインインターフェース全体を更新する。
 
@@ -114,23 +103,15 @@ async def generate_document(
         countries: 選択された国名のリスト。
         regulations: 選択された規制名のリスト。
         open_accordions: 開いているアコーディオンのIDリスト。
-        session: 非同期データベースセッション。
+        deps: ページ表示に必要な依存性。
 
     Returns:
         HTMLResponse: 更新されたメインインターフェース。
     """
-    country_repo = CountryRepository(session)
-    regulation_repo = RegulationRepository(session)
-
     # 再レンダリングのために全データを取得
-    grouped_countries = await country_repo.get_grouped_by_continent()
-    all_regulations = await regulation_repo.get_all_names()
+    grouped_countries, all_regulations, reports = await deps.page_service.get_main_page_data()
 
-    # レポート一覧を取得
-    report_repo = ReportRepository(session)
-    reports = await report_repo.get_all_desc()
-
-    return templates.TemplateResponse(
+    return deps.templates.TemplateResponse(
         request=request,
         name='components/main_interface.html',
         context={
@@ -150,13 +131,14 @@ async def generate_document(
 
 @router.get('/reports/{report_id}/download_csv')
 async def download_csv(
-    report_id: int, session: AsyncSession = Depends(get_session)
+    report_id: int,
+    service: ReportService = Depends(get_report_service),
 ) -> StreamingResponse:
     """レポートデータをCSV形式でダウンロードする。
 
     Args:
         report_id: レポートID。
-        session: 非同期データベースセッション。
+        service: レポートサービス。
 
     Returns:
         StreamingResponse: CSV形式のファイル。
@@ -164,7 +146,7 @@ async def download_csv(
     Raises:
         HTTPException: レポートが見つからない場合。
     """
-    headers, rows = await _get_report_data(report_id, session)
+    headers, rows = await _get_report_data(report_id, service)
 
     output = io.StringIO()
     writer = csv.writer(output)
@@ -180,13 +162,14 @@ async def download_csv(
 
 @router.get('/reports/{report_id}/download_excel')
 async def download_excel(
-    report_id: int, session: AsyncSession = Depends(get_session)
+    report_id: int,
+    service: ReportService = Depends(get_report_service),
 ) -> StreamingResponse:
     """レポートデータをExcel形式でダウンロードする。
 
     Args:
         report_id: レポートID。
-        session: 非同期データベースセッション。
+        service: レポートサービス。
 
     Returns:
         StreamingResponse: Excel形式のファイル。
@@ -194,7 +177,7 @@ async def download_excel(
     Raises:
         HTTPException: レポートが見つからない場合。
     """
-    headers, rows = await _get_report_data(report_id, session)
+    headers, rows = await _get_report_data(report_id, service)
     output = _create_excel_file(headers, rows)
 
     return StreamingResponse(

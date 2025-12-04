@@ -37,9 +37,16 @@ class BaseRepository[ModelType: SQLModel]:
         result = await self.session.exec(select(func.count()).select_from(self.model))
         return result.one()
 
-    async def delete_all(self) -> None:
-        """データベースからすべてのレコードを削除する。"""
+    async def delete_all(self) -> int:
+        """データベースからすべてのレコードを削除する。
+
+        Returns:
+            int: 削除されたレコード数。
+        """
+        # 削除前に件数を取得
+        count_before = await self.count()
         await self.session.exec(delete(self.model))
+        return count_before
 
     async def get_all(self) -> list[ModelType]:
         """データベースからすべてのレコードを取得する。

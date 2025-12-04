@@ -21,6 +21,13 @@ async def get_session() -> AsyncIterator[AsyncSession]:
 
     Yields:
         AsyncSession: データベース操作用の非同期 SQLAlchemy セッション。
+
+    Raises:
+        Exception: データベース操作中にエラーが発生した場合、ロールバック後に再発生する。
     """
     async with async_session() as session:
-        yield session
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise

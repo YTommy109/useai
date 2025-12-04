@@ -3,8 +3,9 @@
 このモジュールは、データベーステーブルを表す SQLModel クラスを定義します。
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel
@@ -48,7 +49,7 @@ class Report(SQLModel, table=True):
 
     Attributes:
         id: 主キー識別子。
-        created_at: 作成日時。
+        created_at: 作成日時（UTC）。
         status: ステータス（processing, completed, failed）。
         directory_path: 保存先ディレクトリパス。
     """
@@ -57,3 +58,20 @@ class Report(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime, nullable=False))
     status: ReportStatus
     directory_path: str
+
+    @property
+    def created_at_jst(self) -> datetime:
+        """作成日時をJST（日本標準時）で取得する。
+
+        Returns:
+            datetime: JSTに変換された作成日時。
+        """
+        # SQLiteにはタイムゾーン情報がないため、UTCとして扱う
+        if self.created_at.tzinfo is None:
+            # タイムゾーン情報がない場合はUTCとして扱う
+            utc_dt = self.created_at.replace(tzinfo=UTC)
+        else:
+            utc_dt = self.created_at.astimezone(UTC)
+
+        # JST（Asia/Tokyo）に変換
+        return utc_dt.astimezone(ZoneInfo('Asia/Tokyo'))

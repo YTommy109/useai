@@ -38,3 +38,48 @@ async def test_report_lifecycle(async_client: AsyncClient, session: AsyncSession
     assert response.status_code == 200
     assert 'プレビュー' in response.text
     assert '項目1' in response.text  # ダミーデータのヘッダー
+
+
+@pytest.mark.asyncio
+async def test_存在しないレポートのプレビュー取得時に404が返される(
+    async_client: AsyncClient,
+) -> None:
+    # Arrange
+    non_existent_id = 99999
+
+    # Act
+    response = await async_client.get(f'/reports/{non_existent_id}/preview')
+
+    # Assert
+    assert response.status_code == 404
+    assert 'Report not found' in response.text
+
+
+@pytest.mark.asyncio
+async def test_存在しないレポートのCSVダウンロード時に404が返される(
+    async_client: AsyncClient,
+) -> None:
+    # Arrange
+    non_existent_id = 99999
+
+    # Act
+    response = await async_client.get(f'/reports/{non_existent_id}/download_csv')
+
+    # Assert
+    assert response.status_code == 404
+    assert 'Report not found' in response.text
+
+
+@pytest.mark.asyncio
+async def test_存在しないレポートのExcelダウンロード時に404が返される(
+    async_client: AsyncClient,
+) -> None:
+    # Arrange
+    non_existent_id = 99999
+
+    # Act
+    response = await async_client.get(f'/reports/{non_existent_id}/download_excel')
+
+    # Assert
+    assert response.status_code == 404
+    assert 'Report not found' in response.text
