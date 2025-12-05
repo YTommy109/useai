@@ -6,6 +6,16 @@
     /* 全体のフォントサイズを小さく */
     --scrollable-list-height: 300px;
     --table-max-height: 500px;
+
+    /* Pico CSS Override: ストライプテーブルの背景色（コントラスト強化） */
+    --pico-table-row-stripped-background-color: rgba(0, 0, 0, 0.075);
+}
+
+/* ダークモードでの変数上書き */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --pico-table-row-stripped-background-color: rgba(255, 255, 255, 0.12);
+    }
 }
 
 table {
@@ -44,24 +54,7 @@ table {
     max-height: var(--table-max-height);
 }
 
-/* ストライプテーブル */
-.c-table-striped {
-    margin-bottom: 0;
-}
 
-/* ストライプテーブルの偶数行 - コントラストを強化 */
-.c-table-striped tbody tr:nth-child(even) {
-    background-color: var(--pico-table-row-stripped-background-color);
-    /* Picoのデフォルト値を使用 */
-}
-
-/* ダークモードでのストライプ強化 */
-@media (prefers-color-scheme: dark) {
-    .c-table-striped tbody tr:nth-child(even) {
-        background-color: rgba(255, 255, 255, 0.05);
-        /* より明確なコントラスト */
-    }
-}
 
 /* 固定ヘッダーテーブル */
 .c-table-sticky-header {
@@ -78,27 +71,6 @@ table {
 /* 管理画面ボディ */
 .p-admin-body {
     padding: 1.25rem;
-}
-
-/* 管理画面カード */
-.p-admin-card {
-    margin-bottom: 1.25rem;
-    padding: 1.25rem;
-}
-
-/* ============================================
-   Utility - 汎用ヘルパークラス
-   ============================================ */
-
-/* ボーダー */
-.u-bordered {
-    border: 1px solid var(--pico-muted-border-color);
-    border-radius: var(--pico-border-radius);
-}
-
-/* パディング */
-.u-p-1 {
-    padding: 1rem;
 }
 
 /* マージン */
@@ -169,6 +141,7 @@ table {
 .c-accordion-toggle:checked~.c-accordion-content {
     display: block !important;
 }
+
 
 /* ============================================
    Report List - レポート履歴コンポーネント
