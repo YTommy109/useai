@@ -4,25 +4,27 @@ import time
 from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from src.exceptions import AppError, ResourceNotFoundError
 from src.logger import logger
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """全てのリクエストとレスポンスをログ出力するミドルウェア。"""
 
-    async def dispatch(
+    async def dispatch(  # noqa: PLR0915
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        """リクエストを処理し、ログを出力する。
+        """リクエストを処理する。
 
         Args:
-            request: 受信したリクエスト
-            call_next: 次のミドルウェアまたはルートハンドラ
+            request: リクエストオブジェクト。
+            call_next: 次の処理を呼び出す関数。
 
         Returns:
-            Response: 生成されたレスポンス
+            Response: レスポンスオブジェクト。
         """
         start_time = time.perf_counter()
 
@@ -41,6 +43,18 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             logger.info(f'Response: {response.status_code} processed in {process_time:.3f}s')
 
             return response
+
+        except ResourceNotFoundError as e:
+            # リソースが見つからない場合は404を返す
+            process_time = time.perf_counter() - start_time
+            logger.warning(f'Resource not found: {e!s} after {process_time:.3f}s')
+            return JSONResponse(status_code=404, content={'message': str(e)})
+
+        except AppError as e:
+            # アプリケーション固有の例外は400エラー系として扱う
+            process_time = time.perf_counter() - start_time
+            logger.warning(f'Application error: {e!s} after {process_time:.3f}s')
+            return JSONResponse(status_code=400, content={'message': str(e)})
 
         except Exception as e:
             # 予期せぬエラーのログ出力（スタックトレース含む）

@@ -99,7 +99,7 @@ async def test_インポート_ファイルが存在しない場合404(client: T
 
         # Assert
         assert response.status_code == 404
-        assert 'ファイルが見つかりません' in response.text
+        assert 'CSV file not found' in response.text
 
 
 @pytest.mark.parametrize(

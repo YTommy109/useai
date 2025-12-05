@@ -8,6 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models import Report, ReportStatus
 from src.db.repository import ReportRepository
+from src.exceptions import ResourceNotFoundError
 
 
 class ReportService:
@@ -149,7 +150,7 @@ class ReportService:
         """
         report = await self.repository.get_by_id(report_id)
         if not report:
-            raise ValueError(f'Report not found: {report_id}')
+            raise ResourceNotFoundError(resource_name='Report', resource_id=str(report_id))
 
         path = Path(report.directory_path) / 'result.tsv'
         if not path.exists():

@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models import Regulation
 from src.db.repository import RegulationRepository
+from src.exceptions import ResourceNotFoundError
 
 
 class RegulationService:
@@ -39,10 +40,10 @@ class RegulationService:
             インポートされたレコード数。
 
         Raises:
-            FileNotFoundError: CSV ファイルが存在しない場合。
+            ResourceNotFoundError: CSV ファイルが存在しない場合。
         """
         if not csv_path.exists():
-            raise FileNotFoundError(f'CSV file not found: {csv_path}')
+            raise ResourceNotFoundError(resource_name='CSV file', resource_id=str(csv_path))
 
         # 既存データを削除
         await self.repository.delete_all()

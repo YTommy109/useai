@@ -7,6 +7,7 @@ import pytest
 import pytest_mock
 
 from src.db.repository import CountryRepository
+from src.exceptions import ResourceNotFoundError
 from src.services.country_service import CountryService
 
 
@@ -41,7 +42,7 @@ async def test_CSVファイルからのインポートが成功する(mocker: py
 @pytest.mark.parametrize(
     ('file_exists', 'csv_content', 'expected_exception', 'match_message'),
     [
-        (False, '', FileNotFoundError, 'CSV file not found'),
+        (False, '', ResourceNotFoundError, 'CSV file not found'),
         (True, 'name\n国A\n国B', KeyError, 'continent'),
     ],
 )

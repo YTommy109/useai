@@ -6,6 +6,7 @@ import pytest
 import pytest_mock
 
 from src.db.models import Report, ReportStatus
+from src.exceptions import ResourceNotFoundError
 from src.services.report_service import ReportService
 
 
@@ -153,8 +154,11 @@ async def test_レポート未存在時にget_report_contentがValueErrorを発�
     report_id = 999
     mock_repo.get_by_id.return_value = None
 
+    report_id = 999
+    mock_repo.get_by_id.return_value = None
+
     # Act & Assert
-    with pytest.raises(ValueError, match='Report not found'):
+    with pytest.raises(ResourceNotFoundError, match='Report not found'):
         await service.get_report_content(report_id)
 
     mock_repo.get_by_id.assert_called_with(report_id)
