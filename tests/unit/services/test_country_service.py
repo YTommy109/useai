@@ -1,4 +1,4 @@
-"""RegulationService の単体テスト。"""
+"""CountryService の単体テスト。"""
 
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock
@@ -6,22 +6,22 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 import pytest_mock
 
-from src.db.repository import RegulationRepository
-from src.db.service import RegulationService
+from src.db.repository import CountryRepository
+from src.services.country_service import CountryService
 
 
 @pytest.mark.asyncio
 async def test_CSVファイルからのインポートが成功する(mocker: pytest_mock.MockerFixture) -> None:
     # Arrange
-    mock_repo = Mock(spec=RegulationRepository)
+    mock_repo = Mock(spec=CountryRepository)
     mock_repo.delete_all = AsyncMock()
     mock_repo.count = AsyncMock(return_value=2)
 
     mock_session = AsyncMock()
     mock_session.add = Mock()  # add() は同期メソッド
-    service = RegulationService(mock_repo, mock_session)
+    service = CountryService(mock_repo, mock_session)
 
-    csv_content = 'name\n規制A\n規制B'
+    csv_content = 'name,continent\n国A,アジア\n国B,欧州'
 
     # 内部モジュール（Path）は patch.object を使用
     mocker.patch.object(Path, 'exists', return_value=True)
@@ -42,7 +42,7 @@ async def test_CSVファイルからのインポートが成功する(mocker: py
     ('file_exists', 'csv_content', 'expected_exception', 'match_message'),
     [
         (False, '', FileNotFoundError, 'CSV file not found'),
-        (True, 'invalid_column\n規制A\n規制B', KeyError, 'name'),
+        (True, 'name\n国A\n国B', KeyError, 'continent'),
     ],
 )
 async def test_インポート_エラー系(
@@ -53,9 +53,9 @@ async def test_インポート_エラー系(
     match_message: str,
 ) -> None:
     # Arrange
-    mock_repo = Mock(spec=RegulationRepository)
+    mock_repo = Mock(spec=CountryRepository)
     mock_session = AsyncMock()
-    service = RegulationService(mock_repo, mock_session)
+    service = CountryService(mock_repo, mock_session)
 
     mocker.patch.object(Path, 'exists', return_value=file_exists)
     mocker.patch('builtins.open', mocker.mock_open(read_data=csv_content))

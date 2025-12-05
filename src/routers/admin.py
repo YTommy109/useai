@@ -7,7 +7,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from src.db.repository import CountryRepository, RegulationRepository
-from src.db.service import CountryService, RegulationService
 from src.dependencies import (
     get_country_repository,
     get_country_service,
@@ -15,6 +14,8 @@ from src.dependencies import (
     get_regulation_service,
     get_templates,
 )
+from src.services.country_service import CountryService
+from src.services.regulation_service import RegulationService
 
 router = APIRouter(prefix='/admin', tags=['admin'])
 
