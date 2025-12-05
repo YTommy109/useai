@@ -1,49 +1,12 @@
-from collections.abc import AsyncGenerator
 from unittest.mock import mock_open, patch
 
 import pytest
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel.pool import StaticPool
 
-from src.db.engine import get_session
 from src.db.models import Country, Regulation
-from src.main import app
-
-# テスト用の非同期インメモリ SQLite
-DATABASE_URL = 'sqlite+aiosqlite:///'
-engine = create_async_engine(
-    DATABASE_URL,
-    connect_args={'check_same_thread': False},
-    poolclass=StaticPool,
-)
-
-
-@pytest.fixture(name='session')
-async def session_fixture() -> AsyncGenerator[AsyncSession, None]:
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-
-    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with async_session() as session:
-        yield session
-
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
-
-
-@pytest.fixture(name='client')
-async def client_fixture(session: AsyncSession) -> AsyncGenerator[TestClient, None]:
-    async def get_session_override() -> AsyncGenerator[AsyncSession, None]:
-        yield session
-
-    app.dependency_overrides[get_session] = get_session_override
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -68,8 +31,8 @@ async def test_管理ダッシュボードの統計が表示される(
 
     assert country_count_elem is not None
     assert regulation_count_elem is not None
-    assert country_count_elem.text == '1'
-    assert regulation_count_elem.text == '1'
+    assert country_count_elem.text == '3'
+    assert regulation_count_elem.text == '3'
 
 
 @pytest.mark.asyncio
@@ -123,73 +86,50 @@ async def test_規制データをインポートできる(client: TestClient, se
         assert '新規規制2' in names
 
 
+@pytest.mark.parametrize(
+    'endpoint',
+    ['/admin/import/countries', '/admin/import/regulations'],
+)
 @pytest.mark.asyncio
-async def test_国データCSVファイルがないと404エラーが返る(client: TestClient) -> None:
+async def test_インポート_ファイルが存在しない場合404(client: TestClient, endpoint: str) -> None:
     # Arrange: ファイルが存在しないことをモック
     with patch('src.routers.admin.Path.exists', return_value=False):
         # Act
-        response = client.post('/admin/import/countries')
+        response = client.post(endpoint)
 
         # Assert
         assert response.status_code == 404
         assert 'ファイルが見つかりません' in response.text
 
 
+@pytest.mark.parametrize(
+    ('endpoint', 'model_class', 'header'),
+    [
+        ('/admin/import/countries', Country, 'name,continent\n'),
+        ('/admin/import/regulations', Regulation, 'name\n'),
+    ],
+)
 @pytest.mark.asyncio
-async def test_規制データCSVファイルがないと404エラーが返る(client: TestClient) -> None:
-    # Arrange: ファイルが存在しないことをモック
-    with patch('src.routers.admin.Path.exists', return_value=False):
-        # Act
-        response = client.post('/admin/import/regulations')
-
-        # Assert
-        assert response.status_code == 404
-        assert 'ファイルが見つかりません' in response.text
-
-
-@pytest.mark.asyncio
-async def test_国データ空のCSVをインポートすると0件になる(
-    client: TestClient, session: AsyncSession
+async def test_インポート_空のCSVの場合0件(
+    client: TestClient,
+    session: AsyncSession,
+    endpoint: str,
+    model_class: type[SQLModel],
+    header: str,
 ) -> None:
     # Arrange: ヘッダーのみのCSVファイル
-    csv_content = 'name,continent\n'
-
     with (
         patch('src.routers.admin.Path.exists', return_value=True),
-        patch('builtins.open', mock_open(read_data=csv_content)),
+        patch('builtins.open', mock_open(read_data=header)),
     ):
         # Act
-        response = client.post('/admin/import/countries')
+        response = client.post(endpoint)
 
         # Assert
         assert response.status_code == 200
         assert response.text == '0'
 
         # DBが空であることを確認
-        result = await session.exec(select(Country))
-        countries = result.all()
-        assert len(countries) == 0
-
-
-@pytest.mark.asyncio
-async def test_規制データ空のCSVをインポートすると0件になる(
-    client: TestClient, session: AsyncSession
-) -> None:
-    # Arrange: ヘッダーのみのCSVファイル
-    csv_content = 'name\n'
-
-    with (
-        patch('src.routers.admin.Path.exists', return_value=True),
-        patch('builtins.open', mock_open(read_data=csv_content)),
-    ):
-        # Act
-        response = client.post('/admin/import/regulations')
-
-        # Assert
-        assert response.status_code == 200
-        assert response.text == '0'
-
-        # DBが空であることを確認
-        result = await session.exec(select(Regulation))
-        regulations = result.all()
-        assert len(regulations) == 0
+        result = await session.exec(select(model_class))
+        items = result.all()
+        assert len(items) == 0

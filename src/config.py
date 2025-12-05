@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     database_url: str = 'sqlite+aiosqlite:///./data/app.db'
     sql_echo: bool = False
 
+    # ロギング設定
+    log_level: str = 'INFO'
+
 
 # グローバル設定インスタンス
 settings = Settings()

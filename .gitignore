@@ -1,3 +1,6 @@
+# ログ
+.log/
+
 # ユーザーデータ
 /data/
 !/data/README.md

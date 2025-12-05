@@ -26,34 +26,34 @@ async def test_メインページが表示される(client: TestClient) -> None:
     assert 'Test Regulation 2' in response.text
 
 
-@pytest.mark.asyncio
-async def test_国を選択してドキュメントを生成できる(client: TestClient) -> None:
+@pytest.mark.parametrize(
+    ('countries', 'regulations', 'expected_texts'),
+    [
+        (['Test Country A'], [], ['Test Country A']),
+        ([], ['Test Regulation 1'], ['Test Regulation 1']),
+        (['Test Country A'], ['Test Regulation 1'], ['Test Country A', 'Test Regulation 1']),
+    ],
+)
+async def test_ドキュメント生成_選択項目が反映される(
+    client: TestClient,
+    countries: list[str],
+    regulations: list[str],
+    expected_texts: list[str],
+) -> None:
     # Arrange
-    payload = {'countries': ['Test Country A'], 'regulations': []}
+    payload = {'countries': countries, 'regulations': regulations}
 
     # Act
     response = client.post('/generate_document', data=payload)
 
     # Assert
     assert response.status_code == 200
-    assert 'Test Country A' in response.text
+    for text in expected_texts:
+        assert text in response.text
 
 
 @pytest.mark.asyncio
-async def test_規制を選択してドキュメントを生成できる(client: TestClient) -> None:
-    # Arrange
-    payload = {'countries': [], 'regulations': ['Test Regulation 1']}
-
-    # Act
-    response = client.post('/generate_document', data=payload)
-
-    # Assert
-    assert response.status_code == 200
-    assert 'Test Regulation 1' in response.text
-
-
-@pytest.mark.asyncio
-async def test_国と規制を両方選択してドキュメントを生成できる(client: TestClient) -> None:
+async def test_ドキュメント生成_UI状態が正しい(client: TestClient) -> None:
     # Arrange
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
 
@@ -229,3 +229,45 @@ async def test_Excelダウンロードができる(client: TestClient, session: 
 
     # Excelファイルとして読み込めることを確認
     assert len(response.content) > 0
+
+
+@pytest.mark.asyncio
+async def test_レポート一覧が表示される(client: TestClient, session: AsyncSession) -> None:
+    # Arrange - レポートを作成
+    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
+    client.post('/reports', data=payload)
+
+    # Act
+    response = client.get('/reports')
+
+    # Assert
+    assert response.status_code == 200
+    assert 'レポート履歴' in response.text
+    # 作成したレポートが表示されているか確認（厳密なIDチェックは省略するが、行が存在することを確認）
+    soup = BeautifulSoup(response.text, 'html.parser')
+    rows = soup.select('tbody tr')
+    assert len(rows) >= 1
+
+
+@pytest.mark.parametrize(
+    'endpoint_template',
+    [
+        '/reports/{id}/preview',
+        '/reports/{id}/download_csv',
+        '/reports/{id}/download_excel',
+    ],
+)
+@pytest.mark.asyncio
+async def test_存在しないレポートへのアクセスは404(
+    client: TestClient, endpoint_template: str
+) -> None:
+    # Arrange
+    non_existent_id = 99999
+    endpoint = endpoint_template.format(id=non_existent_id)
+
+    # Act
+    response = client.get(endpoint)
+
+    # Assert
+    assert response.status_code == 404
+    assert 'Report not found' in response.text
