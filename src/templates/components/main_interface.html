@@ -1,44 +1,40 @@
 {% from "macros/scrollable_box.html" import scrollable_box %}
 
-<form hx-post="/generate_document" hx-trigger="change delay:300ms" hx-target="#main-interface" hx-swap="innerHTML"
-    hx-indicator="#loading-indicator">
-    <!-- 入力エリア -->
-    <div class="grid">
-        <!-- 国選択 -->
-        {% call scrollable_box(title="国を選択", show_loading=True) %}
-        {% include "components/country_selector.html" %}
-        {% endcall %}
+<div id="main-interface-container">
+    <form hx-post="/update_main_interface"
+        hx-trigger="change from:input[name='countries'], change from:input[name='regulations']"
+        hx-target="#main-interface-container" hx-swap="outerHTML" hx-indicator="#loading-indicator" id="report-form">
+        <!-- 入力エリア -->
+        <div class="grid">
+            <!-- 国選択 -->
+            {% call scrollable_box(title="国を選択", show_loading=True) %}
+            {% include "components/country_selector.html" %}
+            {% endcall %}
 
-        <!-- 法規選択 -->
-        {% call scrollable_box(title="法規を選択") %}
-        {% include "components/regulation_selector.html" %}
-        {% endcall %}
-    </div>
-
-    <hr>
-
-    <!-- プロンプトデバッグ -->
-    <div id="document-preview">
-        <div class="accordion-item">
-            <input type="checkbox" id="accordion-prompt-debug" name="open_accordions" value="prompt-debug"
-                class="c-accordion-toggle" {% if 'prompt-debug' in open_accordions %}checked{% endif %}>
-            <label for="accordion-prompt-debug" class="c-accordion-header">プロンプト詳細（デバッグ用）</label>
-            <div class="c-accordion-content">
-                {% include "components/prompt_debug.html" %}
-            </div>
+            <!-- 法規選択 -->
+            {% call scrollable_box(title="法規を選択") %}
+            {% include "components/regulation_selector.html" %}
+            {% endcall %}
         </div>
-    </div>
 
-    <!-- 実行ボタン -->
-    <div class="grid" style="margin-top: 1rem;">
-        <button id="execute-button" type="submit" hx-post="/reports" hx-target="#report-list" hx-swap="outerHTML" {% if
-            not is_executable %}disabled{% endif %}> 実行
-        </button>
-    </div>
+        <hr>
 
-    <!-- レポート履歴一覧 -->
-    {% include "components/report_list.html" %}
+        <!-- ボタン部 -->
+        <div class="c-button-group" style="margin-top: 1rem;">
+            <button type="button" class="c-prompt-button" hx-post="/preview_prompt" hx-include="[name='countries'],[name='regulations']"
+                hx-target="#modal-prompt-content" hx-swap="innerHTML"
+                onclick="document.getElementById('prompt-preview-modal').showModal()">
+                プロンプト
+            </button>
+            <button id="execute-button" type="submit" class="c-execute-button" hx-post="/reports" {% if not is_executable %}disabled{% endif %}>
+                実行
+            </button>
+        </div>
 
-    <!-- プレビューエリア -->
-    <div id="preview-area" style="margin-top: 2rem;"></div>
-</form>
+        <!-- プレビュー表示エリア -->
+        <div id="prompt-preview-area" style="margin-top: 2rem;"></div>
+
+        <!-- プレビューエリア -->
+        <div id="preview-area" style="margin-top: 2rem;"></div>
+    </form>
+</div>

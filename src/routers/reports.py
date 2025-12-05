@@ -29,7 +29,7 @@ async def create_report(
         templates: Jinja2テンプレートインスタンス。
 
     Returns:
-        HTMLResponse: 更新されたレポート一覧。
+        HTMLResponse: リダイレクトヘッダー付きのレスポンス。
     """
     if not countries and not regulations:
         # エラーメッセージを返すか、何もしない
@@ -40,13 +40,10 @@ async def create_report(
 
     await service.create_report(prompt)
 
-    # 一覧を再取得して返す
-    reports = await service.repository.get_all_desc()
-    return templates.TemplateResponse(
-        request=request,
-        name='components/report_list.html',
-        context={'reports': reports},
-    )
+    # HTMXでホームページにリダイレクト
+    response = HTMLResponse(content='', status_code=200)
+    response.headers['HX-Redirect'] = '/'
+    return response
 
 
 @router.get('', response_class=HTMLResponse)

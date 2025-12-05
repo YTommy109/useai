@@ -1,14 +1,29 @@
-{% extends "base.html" %}
+{% extends "layout/app_shell.html" %}
 
 {% block title %}UseAI{% endblock %}
+{% block page_title %}ホーム{% endblock %}
 
 {% block head %}
 {% endblock %}
 
 {% block content %}
-<div id="main-interface">
-    {% include "components/main_interface.html" %}
+<!-- レポート履歴一覧 -->
+{% include "components/report_list.html" %}
+
+<!-- 動的エリア(新規作成機能 or レポートプレビュー) -->
+<div id="dynamic-area" style="margin-top: 2rem;">
+    <div id="main-interface-container"></div>
 </div>
 
-<div id="table-result"></div>
+<!-- プロンプトプレビュー用モーダル -->
+<dialog id="prompt-preview-modal">
+    <article>
+        <header>
+            <button aria-label="Close" rel="prev"
+                onclick="document.getElementById('prompt-preview-modal').close()"></button>
+            <h3>プロンプト</h3>
+        </header>
+        <div id="modal-prompt-content"></div>
+    </article>
+</dialog>
 {% endblock %}

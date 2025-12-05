@@ -1,0 +1,11 @@
+<div id="prompt-preview-content" class="pico-background-slate-50 c-debug-content u-bordered u-p-1"
+    style="white-space: normal;">
+    {% if selected_countries or selected_regulations %}
+    <h4>プロンプト</h4>
+    <div class="prompt-preview-container">
+        {{ prompt_html | safe }}
+    </div>
+    {% else %}
+    <p>国または法規を選択してください。</p>
+    {% endif %}
+</div>

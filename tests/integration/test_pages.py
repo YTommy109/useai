@@ -19,11 +19,10 @@ async def test_メインページが表示される(client: TestClient) -> None:
 
     # Assert
     assert response.status_code == 200
-    assert 'Test Country A' in response.text
-    assert 'Test Country B' in response.text
-    assert 'Test Regulation 1' in response.text
-    assert 'Test Regulation 2' in response.text
-    assert 'Test Regulation 2' in response.text
+    # メインページはレポート履歴ページなので、レポート履歴の要素を確認
+    assert 'レポート履歴' in response.text
+    assert 'No.' in response.text
+    assert '作成日時' in response.text
 
 
 @pytest.mark.parametrize(
@@ -64,13 +63,6 @@ async def test_ドキュメント生成_UI状態が正しい(client: TestClient)
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # プロンプトデバッグエリアの確認
-    debug_content = soup.find(id='prompt-debug-content')
-    assert debug_content is not None
-    assert 'ゴール: これはダミーのプロンプトです。' in debug_content.text
-    assert 'Test Country A' in debug_content.text
-    assert 'Test Regulation 1' in debug_content.text
-
     # 選択状態の維持を確認 (checked属性)
     country_checkbox = soup.find('input', {'value': 'Test Country A'})
     assert country_checkbox is not None
@@ -103,47 +95,20 @@ async def test_何も選択しないと実行ボタンが無効になる(client:
     assert execute_button is not None
     assert execute_button.has_attr('disabled')
 
-    # プロンプトデバッグアコーディオンのチェックボックスが未チェックであること
-    accordion_checkbox = soup.find('input', {'id': 'accordion-prompt-debug'})
-    assert accordion_checkbox is not None
-    assert not accordion_checkbox.has_attr('checked')
-
 
 @pytest.mark.asyncio
-async def test_アコーディオンの開閉状態が維持される(client: TestClient) -> None:
-    # Arrange - アコーディオンを開いた状態で送信
-    payload = {
-        'countries': ['Test Country A'],
-        'regulations': [],
-        'open_accordions': ['prompt-debug'],
-    }
+async def test_プロンプトプレビューが表示される(client: TestClient) -> None:
+    # Arrange
+    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
 
     # Act
-    response = client.post('/generate_document', data=payload)
+    response = client.post('/preview_prompt', data=payload)
 
     # Assert
     assert response.status_code == 200
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # アコーディオンのチェックボックスがチェックされていること
-    accordion_checkbox = soup.find('input', {'id': 'accordion-prompt-debug'})
-    assert accordion_checkbox is not None
-    assert accordion_checkbox.has_attr('checked')
-
-    # Arrange - アコーディオンを閉じた状態で送信
-    payload_closed = {'countries': ['Test Country A'], 'regulations': [], 'open_accordions': []}
-
-    # Act
-    response_closed = client.post('/generate_document', data=payload_closed)
-
-    # Assert
-    assert response_closed.status_code == 200
-    soup_closed = BeautifulSoup(response_closed.text, 'html.parser')
-
-    # アコーディオンのチェックボックスが未チェックであること
-    accordion_checkbox_closed = soup_closed.find('input', {'id': 'accordion-prompt-debug'})
-    assert accordion_checkbox_closed is not None
-    assert not accordion_checkbox_closed.has_attr('checked')
+    assert 'Test Country A' in response.text
+    assert 'Test Regulation 1' in response.text
+    assert 'プロンプトプレビュー' in response.text
 
 
 @pytest.mark.asyncio
@@ -151,7 +116,11 @@ async def test_テーブルを生成できる(client: TestClient, session: Async
     # Arrange - レポートを作成
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
     create_response = client.post('/reports', data=payload)
+
+    # Assert - リダイレクトヘッダーが返される
     assert create_response.status_code == 200
+    assert 'HX-Redirect' in create_response.headers
+    assert create_response.headers['HX-Redirect'] == '/'
 
     # 作成されたレポートIDをデータベースから取得
     result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
@@ -166,7 +135,7 @@ async def test_テーブルを生成できる(client: TestClient, session: Async
 
     # Assert
     assert response.status_code == 200
-    assert '生成結果データ' in response.text
+    assert 'レポート #' in response.text
     assert '項目1' in response.text
 
 
@@ -176,6 +145,7 @@ async def test_CSVダウンロードができる(client: TestClient, session: As
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
     create_response = client.post('/reports', data=payload)
     assert create_response.status_code == 200
+    assert 'HX-Redirect' in create_response.headers
 
     # 作成されたレポートIDをデータベースから取得
     result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
@@ -206,6 +176,7 @@ async def test_Excelダウンロードができる(client: TestClient, session: 
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
     create_response = client.post('/reports', data=payload)
     assert create_response.status_code == 200
+    assert 'HX-Redirect' in create_response.headers
 
     # 作成されたレポートIDをデータベースから取得
     result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
@@ -271,3 +242,101 @@ async def test_存在しないレポートへのアクセスは404(
     # Assert
     assert response.status_code == 404
     assert 'Report not found' in response.text
+
+
+@pytest.mark.asyncio
+async def test_main_interfaceエンドポイントが動作する(client: TestClient) -> None:
+    # Act
+    response = client.get('/main_interface')
+
+    # Assert
+    assert response.status_code == 200
+    assert '国を選択' in response.text
+    assert '法規を選択' in response.text
+    assert 'プロンプトプレビュー' in response.text
+    assert '実行' in response.text
+
+
+@pytest.mark.asyncio
+async def test_ホームページに新規作成ボタンがある(client: TestClient) -> None:
+    # Act
+    response = client.get('/')
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # 新規作成ボタンが存在すること
+    buttons = soup.find_all('button')
+    new_report_button = next(
+        (btn for btn in buttons if btn.string and '新規作成' in btn.string), None
+    )
+    assert new_report_button is not None
+
+    # 動的エリアが存在すること
+    dynamic_area = soup.find(id='dynamic-area')
+    assert dynamic_area is not None
+
+    # プロンプトプレビュー用モーダルが存在すること
+    modal = soup.find(id='prompt-preview-modal')
+    assert modal is not None
+
+
+@pytest.mark.asyncio
+async def test_新規作成機能_初期状態では実行ボタンが無効(client: TestClient) -> None:
+    # Act
+    response = client.get('/main_interface')
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # 実行ボタンが存在し、無効状態であること
+    execute_button = soup.find('button', id='execute-button')
+    assert execute_button is not None
+    assert 'disabled' in execute_button.attrs
+
+    # プロンプトプレビューボタンは有効であること
+    buttons = soup.find_all('button')
+    preview_button = next(
+        (btn for btn in buttons if btn.string and 'プロンプトプレビュー' in btn.string), None
+    )
+    assert preview_button is not None
+    assert 'disabled' not in preview_button.attrs
+
+
+@pytest.mark.asyncio
+async def test_新規作成機能_選択後は実行ボタンが有効(client: TestClient) -> None:
+    # Act - 国を選択してフォームを更新
+    payload = {'countries': ['Test Country A']}
+    response = client.post('/update_main_interface', data=payload)
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # 実行ボタンが存在し、有効状態であること
+    execute_button = soup.find('button', id='execute-button')
+    assert execute_button is not None
+    assert 'disabled' not in execute_button.attrs
+
+    # 選択された国がチェックされていること
+    country_checkbox = soup.find('input', {'name': 'countries', 'value': 'Test Country A'})
+    assert country_checkbox is not None
+    assert 'checked' in country_checkbox.attrs
+
+
+@pytest.mark.asyncio
+async def test_新規作成機能_法規選択でも実行ボタンが有効(client: TestClient) -> None:
+    # Act - 法規を選択してフォームを更新
+    payload = {'regulations': ['Test Regulation 1']}
+    response = client.post('/update_main_interface', data=payload)
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # 実行ボタンが存在し、有効状態であること
+    execute_button = soup.find('button', id='execute-button')
+    assert execute_button is not None
+    assert 'disabled' not in execute_button.attrs

@@ -1,5 +1,10 @@
 <article id="report-list" class="c-report-list">
-    <h4>レポート履歴</h4>
+    <div class="c-report-header">
+        <h4 class="u-m-0">レポート履歴</h4>
+        <button type="button" class="c-new-report-button" hx-get="/main_interface" hx-target="#dynamic-area" hx-swap="innerHTML">
+            新規作成
+        </button>
+    </div>
     <div class="c-report-table-wrapper">
         <table class="striped c-report-table u-m-0">
             <thead>
@@ -23,7 +28,7 @@
                     <td>
                         {% if report.status == 'completed' %}
                         <button class="outline contrast" hx-get="/reports/{{ report.id }}/preview"
-                            hx-target="#preview-area" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; width: auto;">
+                            hx-target="#dynamic-area" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; width: auto;">
                             プレビュー
                         </button>
                         {% endif %}

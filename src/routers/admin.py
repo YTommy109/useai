@@ -47,6 +47,7 @@ async def admin_dashboard(
         context={
             'country_count': country_count,
             'regulation_count': regulation_count,
+            'active_page': 'admin',
         },
     )
 

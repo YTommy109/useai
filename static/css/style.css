@@ -152,6 +152,20 @@ table {
     margin-top: 2rem;
 }
 
+/* レポートヘッダー（見出しとボタン） */
+.c-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* 新規作成ボタン */
+.c-new-report-button {
+    width: auto;
+    flex-shrink: 0;
+}
+
 /* レポートテーブルラッパー */
 .c-report-table-wrapper {
     max-height: var(--scrollable-list-height);
@@ -201,4 +215,48 @@ table {
     background-color: #e74c3c;
     /* Red */
     color: white;
+}
+
+/* ============================================
+   Modal Dialog - モーダルダイアログ
+   ============================================ */
+
+/* モーダルダイアログのスタイル */
+dialog {
+    max-width: 800px;
+    width: 90%;
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+dialog article {
+    margin: 0;
+}
+
+/* ============================================
+   Button Group - ボタングループ
+   ============================================ */
+
+/* ボタングループ（右寄せ） */
+.c-button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* プロンプトボタン */
+.c-prompt-button {
+    width: auto !important;
+    min-width: 120px;
+}
+
+/* 実行ボタン */
+.c-execute-button {
+    width: auto !important;
+    min-width: 120px;
 }
