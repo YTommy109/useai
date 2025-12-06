@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     # ロギング設定
     log_level: str = 'INFO'
 
+    # レポート設定
+    report_base_dir: str = 'data/reports'
+    report_preview_limit: int = 100
+
 
 # グローバル設定インスタンス
 settings = Settings()

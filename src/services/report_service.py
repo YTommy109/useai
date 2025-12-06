@@ -1,14 +1,15 @@
 import csv
-import random
 from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.config import settings
 from src.db.models import Report, ReportStatus
 from src.db.repository import ReportRepository
-from src.exceptions import ResourceNotFoundError
+from src.exceptions import InvalidFilePathError, ResourceNotFoundError
+from src.utils.report_utils import generate_dummy_data
 
 
 class ReportService:
@@ -18,50 +19,18 @@ class ReportService:
         self,
         repository: ReportRepository,
         session: AsyncSession,
-        base_dir: str = 'data/reports',
+        base_dir: str | None = None,
     ) -> None:
         """初期化。
 
         Args:
             repository: レポートリポジトリ。
             session: 非同期データベースセッション。
-            base_dir: レポートファイルの保存先ベースディレクトリ。
+            base_dir: レポートファイルの保存先ベースディレクトリ。Noneの場合は設定から取得。
         """
         self.repository = repository
         self.session = session
-        self.base_dir = base_dir
-
-    @staticmethod
-    def generate_prompt_text(countries: list[str], regulations: list[str]) -> str:
-        """プロンプトテキストを生成する。
-
-        Args:
-            countries: 選択された国名のリスト。
-            regulations: 選択された規制名のリスト。
-
-        Returns:
-            str: 生成されたプロンプトテキスト。
-        """
-        prompt_lines = [
-            'ゴール: これはダミーのプロンプトです。',
-            '',
-            'ヘッダー部: プロンプトヘッダー部です。',
-            '',
-            '条件部:',
-            '国:',
-        ]
-        for country in countries:
-            prompt_lines.append(f'- {country}')
-
-        prompt_lines.append('')
-        prompt_lines.append('法規:')
-        for regulation in regulations:
-            prompt_lines.append(f'- {regulation}')
-
-        prompt_lines.append('')
-        prompt_lines.append('詳細: ここは詳細が入ります。')
-
-        return '\n'.join(prompt_lines)
+        self.base_dir = base_dir or settings.report_base_dir
 
     async def create_report(self, prompt: str) -> Report:
         """レポートを作成する。
@@ -131,7 +100,7 @@ class ReportService:
             f.write(prompt)
 
         # ダミーデータ生成
-        headers, rows = ReportService.generate_dummy_data()
+        headers, rows = generate_dummy_data()
 
         # result.tsv保存
         with open(path / 'result.tsv', 'w', encoding='utf-8', newline='') as f:
@@ -147,16 +116,28 @@ class ReportService:
 
         Returns:
             tuple[list[str], list[list[str]]]: ヘッダーと行データのタプル。
+
+        Raises:
+            ResourceNotFoundError: レポートが見つからない場合。
+            ValueError: ファイルパスが不正な場合。
         """
         report = await self.repository.get_by_id(report_id)
         if not report:
             raise ResourceNotFoundError(resource_name='Report', resource_id=str(report_id))
 
-        path = Path(report.directory_path) / 'result.tsv'
-        if not path.exists():
+        # パストラバーサル対策: ベースディレクトリ内であることを検証
+        base_path = Path(self.base_dir).resolve()
+        report_dir = Path(report.directory_path).resolve()
+        result_path = (report_dir / 'result.tsv').resolve()
+
+        # パスがベースディレクトリ内にあるか確認
+        if not str(result_path).startswith(str(base_path)):
+            raise InvalidFilePathError(report.directory_path)
+
+        if not result_path.exists():
             return [], []
 
-        with open(path, encoding='utf-8', newline='') as f:
+        with open(result_path, encoding='utf-8', newline='') as f:
             reader = csv.reader(f, delimiter='\t')
             rows = list(reader)
             if not rows:
@@ -164,22 +145,3 @@ class ReportService:
             headers = rows[0]
             data = rows[1:]
             return headers, data
-
-    @staticmethod
-    def generate_dummy_data() -> tuple[list[str], list[list[str]]]:
-        """ダミーデータを生成する。
-
-        Returns:
-            tuple[list[str], list[list[str]]]: ヘッダーと行データのタプル。
-        """
-        headers = [f'項目{i + 1}' for i in range(20)]
-        rows = []
-        for i in range(50):
-            row = [f'データ{i + 1}-{j + 1}' for j in range(20)]
-            # それっぽいデータを入れる
-            row[2] = random.choice(['適合', '要確認', '不適合', '保留'])  # noqa: S311
-            row[5] = random.choice(['あり', 'なし', '不明'])  # noqa: S311
-            row[8] = str(random.randint(1, 100))  # noqa: S311
-            row[12] = random.choice(['A', 'B', 'C', 'D', 'E'])  # noqa: S311
-            rows.append(row)
-        return headers, rows

@@ -10,6 +10,7 @@ from openpyxl import Workbook
 
 from src.dependencies import PageDependencies, get_page_dependencies, get_report_service
 from src.services.report_service import ReportService
+from src.utils.report_utils import generate_prompt_text
 
 router = APIRouter()
 
@@ -59,54 +60,6 @@ def _create_excel_file(headers: list[str], rows: list[list[str]]) -> io.BytesIO:
     wb.save(output)
     output.seek(0)
     return output
-
-
-@router.get('/reports/{report_id}/preview', response_class=HTMLResponse)
-async def preview_report(
-    report_id: int,
-    service: ReportService = Depends(get_report_service),
-) -> HTMLResponse:
-    """レポートのプレビュー用HTMLを返す（HTMX用）。
-
-    Args:
-        report_id: レポートID。
-        service: レポートサービス。
-
-    Returns:
-        HTMLResponse: プレビュー用のHTMLテーブル。
-    """
-    headers, rows = await _get_report_data(report_id, service)
-
-    # テーブルHTMLを生成
-    html_parts = [
-        f'<h3>レポート #{report_id}</h3>',
-        '<div style="overflow-x: auto;">',
-        '<table class="striped">',
-        '<thead><tr>',
-    ]
-
-    for header in headers:
-        html_parts.append(f'<th>{header}</th>')
-
-    html_parts.append('</tr></thead><tbody>')
-
-    # 最初の100行のみ表示
-    preview_limit = 100
-    for row in rows[:preview_limit]:
-        html_parts.append('<tr>')
-        for cell in row:
-            html_parts.append(f'<td>{cell}</td>')
-        html_parts.append('</tr>')
-
-    html_parts.append('</tbody></table></div>')
-
-    if len(rows) > preview_limit:
-        html_parts.append(
-            f'<p><small>※ 最初の{preview_limit}行のみ表示しています。'
-            'すべてのデータを確認するにはダウンロードしてください。</small></p>'
-        )
-
-    return HTMLResponse(content=''.join(html_parts))
 
 
 @router.get('/main_interface', response_class=HTMLResponse)
@@ -233,7 +186,7 @@ async def preview_prompt(
     Returns:
         HTMLResponse: プロンプトプレビューのHTML。
     """
-    prompt_html = markdown.markdown(ReportService.generate_prompt_text(countries, regulations))
+    prompt_html = markdown.markdown(generate_prompt_text(countries, regulations))
 
     return deps.templates.TemplateResponse(
         request=request,

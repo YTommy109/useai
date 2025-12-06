@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-theme="light">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="/static/vendor/css/pico.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <script src="/static/vendor/js/htmx.min.js"></script>
+    <script>
+        // ダークモードの自動検出と設定
+        (function() {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // テーマ変更の監視
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+                }
+            });
+        })();
+    </script>
     <style>
         /* App Shell Specific Styles */
         :root {

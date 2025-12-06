@@ -1,12 +1,15 @@
 """レポート関連のルーター。"""
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from src.config import settings
 from src.db.repository import ReportRepository
 from src.dependencies import get_report_repository, get_report_service, get_templates
+from src.exceptions import ValidationError
 from src.services.report_service import ReportService
+from src.utils.report_utils import generate_prompt_text
 
 router = APIRouter(prefix='/reports', tags=['reports'])
 
@@ -32,11 +35,10 @@ async def create_report(
         HTMLResponse: リダイレクトヘッダー付きのレスポンス。
     """
     if not countries and not regulations:
-        # エラーメッセージを返すか、何もしない
-        return HTMLResponse(content='', status_code=400)
+        raise ValidationError('国または法規を選択してください')
 
     # プロンプト生成
-    prompt = ReportService.generate_prompt_text(countries, regulations)
+    prompt = generate_prompt_text(countries, regulations)
 
     await service.create_report(prompt)
 
@@ -76,6 +78,7 @@ async def preview_report(
     report_id: int,
     service: ReportService = Depends(get_report_service),
     templates: Jinja2Templates = Depends(get_templates),
+    table_only: bool = False,
 ) -> HTMLResponse:
     """レポートをプレビューする。
 
@@ -84,15 +87,31 @@ async def preview_report(
         report_id: レポートID。
         service: レポートサービス。
         templates: Jinja2テンプレートインスタンス。
+        table_only: テーブルのみを返すかどうか（HTMX用）。
 
     Returns:
-        HTMLResponse: プレビュー画面。
-    """
-    try:
-        headers, rows = await service.get_report_content(report_id)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail='Report not found') from err
+        HTMLResponse: プレビュー画面またはテーブルHTML。
 
+    Raises:
+        HTTPException: レポートが見つからない場合。
+    """
+    # get_report_contentが例外を発生させるので、それがグローバルハンドラーで処理される
+    headers, rows = await service.get_report_content(report_id)
+
+    # HTMX用のテーブルのみのレスポンス
+    if table_only:
+        return templates.TemplateResponse(
+            request=request,
+            name='components/report_table.html',
+            context={
+                'report_id': report_id,
+                'headers': headers,
+                'rows': rows,
+                'preview_limit': settings.report_preview_limit,
+            },
+        )
+
+    # 完全なプレビューページ
     return templates.TemplateResponse(
         request=request,
         name='components/report_preview.html',

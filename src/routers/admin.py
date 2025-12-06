@@ -14,6 +14,7 @@ from src.dependencies import (
     get_regulation_service,
     get_templates,
 )
+from src.exceptions import ResourceNotFoundError
 from src.services.country_service import CountryService
 from src.services.regulation_service import RegulationService
 
@@ -70,8 +71,8 @@ async def import_countries(
     try:
         count = await service.import_from_csv(Path('data/csv/countries.csv'))
         return HTMLResponse(str(count))
-    except FileNotFoundError:
-        return HTMLResponse('ファイルが見つかりません', status_code=404)
+    except FileNotFoundError as err:
+        raise ResourceNotFoundError('CSV file', 'data/csv/countries.csv') from err
 
 
 @router.post('/import/regulations', response_class=HTMLResponse)
@@ -92,5 +93,5 @@ async def import_regulations(
     try:
         count = await service.import_from_csv(Path('data/csv/regulations.csv'))
         return HTMLResponse(str(count))
-    except FileNotFoundError:
-        return HTMLResponse('ファイルが見つかりません', status_code=404)
+    except FileNotFoundError as err:
+        raise ResourceNotFoundError('CSV file', 'data/csv/regulations.csv') from err
