@@ -11,7 +11,7 @@ from openpyxl import Workbook
 from src.dependencies import PageDependencies, get_page_dependencies, get_report_service
 from src.exceptions import ResourceNotFoundError
 from src.services.report_service import ReportService
-from src.utils.report_utils import generate_prompt_text
+from src.utils.report_utils import PromptGenerator
 
 router = APIRouter()
 
@@ -187,7 +187,7 @@ async def preview_prompt(
     Returns:
         HTMLResponse: プロンプトプレビューのHTML。
     """
-    prompt_html = markdown.markdown(generate_prompt_text(countries, regulations))
+    prompt_html = markdown.markdown(PromptGenerator().generate(countries, regulations))
 
     return deps.templates.TemplateResponse(
         request=request,

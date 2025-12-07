@@ -9,7 +9,7 @@ from src.db.repository import ReportRepository
 from src.dependencies import get_report_repository, get_report_service, get_templates
 from src.exceptions import ValidationError
 from src.services.report_service import ReportService
-from src.utils.report_utils import generate_prompt_text
+from src.utils.report_utils import PromptGenerator
 
 router = APIRouter(prefix='/reports', tags=['reports'])
 
@@ -38,7 +38,7 @@ async def create_report(
         raise ValidationError('国または法規を選択してください')
 
     # プロンプト生成
-    prompt = generate_prompt_text(countries, regulations)
+    prompt = PromptGenerator().generate(countries, regulations)
 
     await service.create_report(prompt)
 
