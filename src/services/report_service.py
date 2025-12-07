@@ -108,6 +108,46 @@ class ReportService:
             writer.writerow(headers)
             writer.writerows(rows)
 
+    def _validate_report_path(self, report_dir: str) -> Path:
+        """レポートディレクトリのパスを検証する。
+
+        Args:
+            report_dir: レポートディレクトリパス。
+
+        Returns:
+            Path: 検証済みのresult.tsvファイルパス。
+
+        Raises:
+            InvalidFilePathError: ファイルパスが不正な場合。
+        """
+        base_path = Path(self.base_dir).resolve()
+        report_dir_path = Path(report_dir).resolve()
+        result_path = (report_dir_path / 'result.tsv').resolve()
+
+        if not str(result_path).startswith(str(base_path)):
+            raise InvalidFilePathError(report_dir)
+
+        return result_path
+
+    def _read_tsv_file(self, result_path: Path) -> tuple[list[str], list[list[str]]]:
+        """TSVファイルを読み込む。
+
+        Args:
+            result_path: TSVファイルのパス。
+
+        Returns:
+            tuple[list[str], list[list[str]]]: ヘッダーと行データのタプル。
+        """
+        if not result_path.exists():
+            return [], []
+
+        with open(result_path, encoding='utf-8', newline='') as f:
+            reader = csv.reader(f, delimiter='\t')
+            rows = list(reader)
+            if not rows:
+                return [], []
+            return rows[0], rows[1:]
+
     async def get_report_content(self, report_id: int) -> tuple[list[str], list[list[str]]]:
         """レポートの内容を取得する。
 
@@ -125,23 +165,5 @@ class ReportService:
         if not report:
             raise ResourceNotFoundError(resource_name='Report', resource_id=str(report_id))
 
-        # パストラバーサル対策: ベースディレクトリ内であることを検証
-        base_path = Path(self.base_dir).resolve()
-        report_dir = Path(report.directory_path).resolve()
-        result_path = (report_dir / 'result.tsv').resolve()
-
-        # パスがベースディレクトリ内にあるか確認
-        if not str(result_path).startswith(str(base_path)):
-            raise InvalidFilePathError(report.directory_path)
-
-        if not result_path.exists():
-            return [], []
-
-        with open(result_path, encoding='utf-8', newline='') as f:
-            reader = csv.reader(f, delimiter='\t')
-            rows = list(reader)
-            if not rows:
-                return [], []
-            headers = rows[0]
-            data = rows[1:]
-            return headers, data
+        result_path = self._validate_report_path(report.directory_path)
+        return self._read_tsv_file(result_path)

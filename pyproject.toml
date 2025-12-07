@@ -282,6 +282,12 @@ disallow_any_explicit = true        # テストで明示的なAny型の使用制
 disallow_any_generics = true        # テストでジェネリックAny型の使用制御
 warn_return_any = true              # テストでAny型の戻り値警告制御
 
+[[tool.mypy.overrides]]
+module = "src.main"
+# FastAPIのadd_exception_handlerは具体的な例外型のハンドラーをサポートしているが、
+# mypyの型定義がそれを認識していないため、arg-typeエラーを無視
+disable_error_code = ["arg-type"]
+
 # =====================================
 # coverage設定
 # =====================================

@@ -57,7 +57,7 @@ async def admin_dashboard(
 async def import_countries(
     service: CountryService = Depends(get_country_service),
 ) -> HTMLResponse:
-    """config/countries.csv から国データをインポートする。
+    """countries.csv から国データをインポートする。
 
     既存のデータはすべて削除され、CSVの内容で置き換えられます。
     HTMXリクエストに対して、更新後の件数を返します。

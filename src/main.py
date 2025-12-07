@@ -44,6 +44,8 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(lifespan=lifespan)
 
 # エラーハンドラーの登録
+# FastAPIは具体的な例外型のハンドラーをサポートしているが、mypyの型定義がそれを認識していないため
+# pyproject.tomlでsrc.mainモジュールのarg-typeエラーを無視する設定を追加
 app.add_exception_handler(ResourceNotFoundError, resource_not_found_handler)
 app.add_exception_handler(InvalidFilePathError, invalid_file_path_handler)
 app.add_exception_handler(ValidationError, validation_error_handler)

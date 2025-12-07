@@ -3,8 +3,8 @@
     <summary>{{ continent }}</summary>
     <div style="padding-left: 1rem;">
         {% for country in countries %}
-        <label for="country-{{ loop.parent.loop.index }}-{{ loop.index }}">
-            <input type="checkbox" id="country-{{ loop.parent.loop.index }}-{{ loop.index }}" name="countries" value="{{ country }}" {% if country in selected_countries
+        <label for="country-{{ country|replace(' ', '-')|lower }}">
+            <input type="checkbox" id="country-{{ country|replace(' ', '-')|lower }}" name="countries" value="{{ country }}" {% if country in selected_countries
                 %}checked{% endif %}>
             {{ country }}
         </label>

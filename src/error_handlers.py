@@ -7,39 +7,12 @@ from fastapi import Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from src.exceptions import (
-    AppError,
     BusinessError,
     InvalidFilePathError,
     ResourceNotFoundError,
     ValidationError,
 )
 from src.logger import logger
-
-
-async def app_error_handler(request: Request, exc: AppError) -> HTMLResponse | JSONResponse:
-    """アプリケーション例外のハンドラー。
-
-    Args:
-        request: FastAPIリクエストオブジェクト。
-        exc: アプリケーション例外。
-
-    Returns:
-        HTMLResponse | JSONResponse: エラーレスポンス。
-    """
-    logger.error(f'Application error: {exc}', exc_info=True)
-
-    # HTMX リクエストの場合はHTMLを返す
-    if request.headers.get('HX-Request'):
-        return HTMLResponse(
-            content=f'<div style="color: red;">エラーが発生しました: {exc}</div>',
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # それ以外はJSON
-    return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content={'error': str(exc)},
-    )
 
 
 async def resource_not_found_handler(

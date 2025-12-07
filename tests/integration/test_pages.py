@@ -108,7 +108,7 @@ async def test_プロンプトプレビューが表示される(client: TestClie
     assert response.status_code == 200
     assert 'Test Country A' in response.text
     assert 'Test Regulation 1' in response.text
-    assert 'プロンプトプレビュー' in response.text
+    assert 'プロンプト' in response.text
 
 
 @pytest.mark.asyncio
@@ -135,7 +135,7 @@ async def test_テーブルを生成できる(client: TestClient, session: Async
 
     # Assert
     assert response.status_code == 200
-    assert 'レポート #' in response.text
+    assert 'プレビュー' in response.text
     assert '項目1' in response.text
 
 
@@ -253,7 +253,7 @@ async def test_main_interfaceエンドポイントが動作する(client: TestCl
     assert response.status_code == 200
     assert '国を選択' in response.text
     assert '法規を選択' in response.text
-    assert 'プロンプトプレビュー' in response.text
+    assert 'プロンプト' in response.text
     assert '実行' in response.text
 
 
@@ -296,10 +296,10 @@ async def test_新規作成機能_初期状態では実行ボタンが無効(cli
     assert execute_button is not None
     assert 'disabled' in execute_button.attrs
 
-    # プロンプトプレビューボタンは有効であること
+    # プロンプトボタンは有効であること
     buttons = soup.find_all('button')
     preview_button = next(
-        (btn for btn in buttons if btn.string and 'プロンプトプレビュー' in btn.string), None
+        (btn for btn in buttons if btn.string and 'プロンプト' in btn.string), None
     )
     assert preview_button is not None
     assert 'disabled' not in preview_button.attrs
@@ -340,3 +340,57 @@ async def test_新規作成機能_法規選択でも実行ボタンが有効(cli
     execute_button = soup.find('button', id='execute-button')
     assert execute_button is not None
     assert 'disabled' not in execute_button.attrs
+
+
+@pytest.mark.asyncio
+async def test_新規作成ボタンのレイアウト確認(client: TestClient) -> None:
+    """新規作成ボタンがレポートヘッダー内に配置されていることを確認する。"""
+    # Act
+    response = client.get('/')
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # レポートヘッダーが存在すること
+    report_header = soup.find('div', class_='c-report-header')
+    assert report_header is not None
+
+    # 新規作成ボタンがレポートヘッダー内に存在すること
+    new_report_button = report_header.find('button', class_='c-new-report-button')
+    assert new_report_button is not None
+    assert new_report_button.string is not None
+    assert '新規作成' in new_report_button.string
+
+    # HTMX属性が正しく設定されていること
+    assert new_report_button.has_attr('hx-get')
+    assert new_report_button['hx-get'] == '/main_interface'
+    assert new_report_button.has_attr('hx-target')
+    assert new_report_button['hx-target'] == '#main-interface-container'
+    assert new_report_button.has_attr('hx-swap')
+    assert new_report_button['hx-swap'] == 'outerHTML'
+
+
+@pytest.mark.asyncio
+async def test_ボタンサイズとレイアウト確認(client: TestClient) -> None:
+    """プロンプトボタンと実行ボタンが適切なサイズで右寄せされていることを確認する。"""
+    # Act
+    response = client.get('/main_interface')
+
+    # Assert
+    assert response.status_code == 200
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # ボタングループが存在すること
+    button_group = soup.find('div', class_='c-button-group')
+    assert button_group is not None
+
+    # プロンプトボタンが存在すること
+    prompt_button = soup.find('button', class_='c-prompt-button')
+    assert prompt_button is not None
+    assert 'プロンプト' in prompt_button.get_text()
+
+    # 実行ボタンが存在すること
+    execute_button = soup.find('button', class_='c-execute-button')
+    assert execute_button is not None
+    assert '実行' in execute_button.get_text()

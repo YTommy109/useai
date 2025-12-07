@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from openpyxl import Workbook
 
 from src.dependencies import PageDependencies, get_page_dependencies, get_report_service
+from src.exceptions import ResourceNotFoundError
 from src.services.report_service import ReportService
 from src.utils.report_utils import generate_prompt_text
 
@@ -33,7 +34,7 @@ async def _get_report_data(
     """
     try:
         return await service.get_report_content(report_id)
-    except ValueError as err:
+    except ResourceNotFoundError as err:
         raise HTTPException(status_code=404, detail='Report not found') from err
 
 

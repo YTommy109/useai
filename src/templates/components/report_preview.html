@@ -5,10 +5,10 @@
         <div class="c-table-header">
             <h3 class="u-m-0">生成結果データ</h3>
             <div>
-                <a href="/reports/{{ report_id }}/download_csv" download class="u-mr-05">
+                <a href="/reports/{{ report_id }}/download_csv" download hx-boost="false" class="u-mr-05">
                     <button type="button">CSV ダウンロード</button>
                 </a>
-                <a href="/reports/{{ report_id }}/download_excel" download>
+                <a href="/reports/{{ report_id }}/download_excel" download hx-boost="false">
                     <button type="button">Excel ダウンロード</button>
                 </a>
             </div>
