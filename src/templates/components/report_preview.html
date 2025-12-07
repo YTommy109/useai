@@ -1,42 +1,40 @@
-<div id="main-interface-container">
-    <div id="preview-area">
-        <h4>プレビュー</h4>
-        {% if headers %}
-        <div class="u-mt-2">
-            <div class="c-table-header">
-                <h3 class="u-m-0">生成結果データ</h3>
-                <div>
-                    <a href="/reports/{{ report_id }}/download_csv" download hx-boost="false" class="u-mr-05">
-                        <button type="button">CSV ダウンロード</button>
-                    </a>
-                    <a href="/reports/{{ report_id }}/download_excel" download hx-boost="false">
-                        <button type="button">Excel ダウンロード</button>
-                    </a>
-                </div>
-            </div>
-            <div class="c-table-container u-bordered">
-                <table class="striped u-m-0">
-                    <thead class="c-table-sticky-header">
-                        <tr>
-                            {% for header in headers %}
-                            <th scope="col" class="u-nowrap">{{ header }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for row in rows %}
-                        <tr>
-                            {% for cell in row %}
-                            <td class="u-nowrap">{{ cell }}</td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<div id="preview-area">
+    <h4>プレビュー</h4>
+    {% if headers %}
+    <div class="u-mt-2">
+        <div class="c-table-header">
+            <h3 class="u-m-0">生成結果データ</h3>
+            <div>
+                <a href="/reports/{{ report_id }}/download_csv" download hx-boost="false" class="u-mr-05">
+                    <button type="button">CSV ダウンロード</button>
+                </a>
+                <a href="/reports/{{ report_id }}/download_excel" download hx-boost="false">
+                    <button type="button">Excel ダウンロード</button>
+                </a>
             </div>
         </div>
-        {% else %}
-        <p>データがありません。</p>
-        {% endif %}
+        <div class="c-table-container u-bordered">
+            <table class="striped u-m-0">
+                <thead class="c-table-sticky-header">
+                    <tr>
+                        {% for header in headers %}
+                        <th scope="col" class="u-nowrap">{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                        <td class="u-nowrap">{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+    {% else %}
+    <p>データがありません。</p>
+    {% endif %}
 </div>

@@ -1,6 +1,0 @@
-<div id="execute-button-container" style="margin-top: 1rem;" {% if oob %}hx-swap-oob="true" {% endif %}>
-    <button id="execute-button" hx-post="/generate_table" hx-target="#table-result" hx-swap="innerHTML" {% if not
-        is_executable %}disabled{% endif %}>
-        実行
-    </button>
-</div>

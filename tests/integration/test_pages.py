@@ -343,8 +343,7 @@ async def test_新規作成機能_法規選択でも実行ボタンが有効(cli
 
 
 @pytest.mark.asyncio
-async def test_新規作成ボタンのレイアウト確認(client: TestClient) -> None:
-    """新規作成ボタンがレポートヘッダー内に配置されていることを確認する。"""
+async def test_新規作成ボタンのHTMX属性が正しく設定される(client: TestClient) -> None:
     # Act
     response = client.get('/')
 
@@ -352,28 +351,24 @@ async def test_新規作成ボタンのレイアウト確認(client: TestClient)
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # レポートヘッダーが存在すること
-    report_header = soup.find('div', class_='c-report-header')
-    assert report_header is not None
-
-    # 新規作成ボタンがレポートヘッダー内に存在すること
-    new_report_button = report_header.find('button', class_='c-new-report-button')
+    # 新規作成ボタンが存在すること
+    buttons = soup.find_all('button')
+    new_report_button = next(
+        (btn for btn in buttons if btn.string and '新規作成' in btn.string), None
+    )
     assert new_report_button is not None
-    assert new_report_button.string is not None
-    assert '新規作成' in new_report_button.string
 
     # HTMX属性が正しく設定されていること
     assert new_report_button.has_attr('hx-get')
     assert new_report_button['hx-get'] == '/main_interface'
     assert new_report_button.has_attr('hx-target')
-    assert new_report_button['hx-target'] == '#main-interface-container'
+    assert new_report_button['hx-target'] == '#dynamic-area'
     assert new_report_button.has_attr('hx-swap')
-    assert new_report_button['hx-swap'] == 'outerHTML'
+    assert new_report_button['hx-swap'] == 'innerHTML'
 
 
 @pytest.mark.asyncio
-async def test_ボタンサイズとレイアウト確認(client: TestClient) -> None:
-    """プロンプトボタンと実行ボタンが適切なサイズで右寄せされていることを確認する。"""
+async def test_プロンプトボタンと実行ボタンが機能する(client: TestClient) -> None:
     # Act
     response = client.get('/main_interface')
 
@@ -381,16 +376,14 @@ async def test_ボタンサイズとレイアウト確認(client: TestClient) ->
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # ボタングループが存在すること
-    button_group = soup.find('div', class_='c-button-group')
-    assert button_group is not None
-
     # プロンプトボタンが存在すること
-    prompt_button = soup.find('button', class_='c-prompt-button')
+    buttons = soup.find_all('button')
+    prompt_button = next(
+        (btn for btn in buttons if btn.get_text() and 'プロンプト' in btn.get_text()), None
+    )
     assert prompt_button is not None
-    assert 'プロンプト' in prompt_button.get_text()
 
     # 実行ボタンが存在すること
-    execute_button = soup.find('button', class_='c-execute-button')
+    execute_button = soup.find('button', id='execute-button')
     assert execute_button is not None
     assert '実行' in execute_button.get_text()

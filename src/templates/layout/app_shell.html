@@ -8,106 +8,13 @@
     <link rel="stylesheet" href="/static/vendor/css/pico.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <script src="/static/vendor/js/htmx.min.js"></script>
-    <script>
-        // ダークモードの自動検出と設定
-        (function() {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-theme', theme);
-
-            // テーマ変更の監視
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('theme')) {
-                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-                }
-            });
-        })();
-    </script>
-    <style>
-        /* App Shell Specific Styles */
-        :root {
-            --sidebar-width: 250px;
-            --header-height: 60px;
-        }
-
-        body {
-            display: flex;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            /* Prevent body scroll, handle in main */
-        }
-
-        /* Sidebar Styles */
-        #sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--pico-contrast-background);
-            color: var(--pico-contrast-color);
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            z-index: 100;
-            height: 100vh;
-            border-right: 1px solid var(--pico-muted-border-color);
-        }
-
-        #sidebar nav ul {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-
-        #sidebar nav li {
-            margin-bottom: 0.5rem;
-        }
-
-        #sidebar nav a {
-            display: block;
-            padding: 0.75rem 1rem;
-            color: var(--pico-contrast-color);
-            text-decoration: none;
-            border-radius: var(--pico-border-radius);
-            transition: background-color 0.2s;
-        }
-
-        #sidebar nav a:hover,
-        #sidebar nav a[aria-current="page"] {
-            background-color: var(--pico-primary-background);
-            color: var(--pico-primary-inverse);
-        }
-
-        /* Main Content Styles */
-        #main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--pico-background-color);
-        }
-
-        header.app-header {
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            padding: 0 2rem;
-            border-bottom: 1px solid var(--pico-muted-border-color);
-            background-color: var(--pico-card-background-color);
-        }
-
-        .content-scroll {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-    </style>
     {% block head %}{% endblock %}
 </head>
 
 <body hx-boost="true">
     <aside id="sidebar">
-        <div style="margin-bottom: 2rem; padding: 0 1rem;">
-            <h2 style="margin: 0; font-size: 1.5rem;">UseAI</h2>
+        <div class="c-sidebar-logo">
+            <h2>UseAI</h2>
         </div>
         <nav>
             <ul>
@@ -127,7 +34,7 @@
 
     <div id="main-content">
         <header class="app-header">
-            <h1 style="margin: 0; font-size: 1.25rem;">{% block page_title %}{% endblock %}</h1>
+            <h1 class="c-page-title">{% block page_title %}{% endblock %}</h1>
         </header>
 
         <div class="content-scroll">

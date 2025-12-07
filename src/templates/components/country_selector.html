@@ -1,11 +1,11 @@
 {% for continent, countries in grouped_countries.items() %}
 <details open>
     <summary>{{ continent }}</summary>
-    <div style="padding-left: 1rem;">
+    <div class="u-pl-1">
         {% for country in countries %}
         <label for="country-{{ country|replace(' ', '-')|lower }}">
-            <input type="checkbox" id="country-{{ country|replace(' ', '-')|lower }}" name="countries" value="{{ country }}" {% if country in selected_countries
-                %}checked{% endif %}>
+            <input type="checkbox" id="country-{{ country|replace(' ', '-')|lower }}" name="countries"
+                value="{{ country }}" {% if country in selected_countries %}checked{% endif %}>
             {{ country }}
         </label>
         {% endfor %}
