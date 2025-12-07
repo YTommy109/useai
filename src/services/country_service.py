@@ -6,8 +6,8 @@ from pathlib import Path
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models import Country
-from src.db.repository import CountryRepository
 from src.exceptions import ResourceNotFoundError
+from src.repositories import CountryRepository
 
 
 class CountryService:

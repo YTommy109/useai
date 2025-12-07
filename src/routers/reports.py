@@ -5,9 +5,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from src.config import settings
-from src.db.repository import ReportRepository
 from src.dependencies import get_report_repository, get_report_service, get_templates
 from src.exceptions import ValidationError
+from src.repositories import ReportRepository
 from src.services.report_service import ReportService
 from src.utils.report_utils import PromptGenerator
 

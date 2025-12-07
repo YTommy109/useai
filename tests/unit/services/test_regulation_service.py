@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 import pytest_mock
 
-from src.db.repository import RegulationRepository
 from src.exceptions import ResourceNotFoundError
+from src.repositories import RegulationRepository
 from src.services.regulation_service import RegulationService
 
 

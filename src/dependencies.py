@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.engine import get_session
-from src.db.repository import CountryRepository, RegulationRepository, ReportRepository
+from src.repositories import CountryRepository, RegulationRepository, ReportRepository
 from src.services.country_service import CountryService
 from src.services.page_service import PageService
 from src.services.regulation_service import RegulationService

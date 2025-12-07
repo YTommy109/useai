@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 import pytest_mock
 
-from src.db.repository import CountryRepository
 from src.exceptions import ResourceNotFoundError
+from src.repositories import CountryRepository
 from src.services.country_service import CountryService
 
 

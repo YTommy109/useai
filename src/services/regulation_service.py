@@ -6,8 +6,8 @@ from pathlib import Path
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.models import Regulation
-from src.db.repository import RegulationRepository
 from src.exceptions import ResourceNotFoundError
+from src.repositories import RegulationRepository
 
 
 class RegulationService:

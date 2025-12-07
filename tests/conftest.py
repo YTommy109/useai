@@ -12,9 +12,9 @@ from sqlmodel.pool import StaticPool
 
 from src.db.engine import get_session
 from src.db.models import Country, Regulation
-from src.db.repository import ReportRepository
 from src.dependencies import get_report_service
 from src.main import app
+from src.repositories import ReportRepository
 from src.services.report_service import ReportService
 
 # Async In-memory SQLite for testing

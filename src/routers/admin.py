@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from src.db.repository import CountryRepository, RegulationRepository
 from src.dependencies import (
     get_country_repository,
     get_country_service,
@@ -15,6 +14,7 @@ from src.dependencies import (
     get_templates,
 )
 from src.exceptions import ResourceNotFoundError
+from src.repositories import CountryRepository, RegulationRepository
 from src.services.country_service import CountryService
 from src.services.regulation_service import RegulationService
 

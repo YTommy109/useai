@@ -4,7 +4,7 @@
 """
 
 from src.db.models import Report
-from src.db.repository import CountryRepository, RegulationRepository, ReportRepository
+from src.repositories import CountryRepository, RegulationRepository, ReportRepository
 
 
 class PageService:

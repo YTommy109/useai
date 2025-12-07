@@ -7,8 +7,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config import settings
 from src.db.models import Report, ReportStatus
-from src.db.repository import ReportRepository
 from src.exceptions import InvalidFilePathError, ResourceNotFoundError
+from src.repositories import ReportRepository
 from src.utils.report_utils import generate_dummy_data
 
 
