@@ -156,11 +156,13 @@ async def read_root(
         HTMLResponse: 国と規制を含むレンダリングされたインデックスページ。
     """
     grouped_countries, regulations, reports = await deps.page_service.get_main_page_data()
+    has_processing = any(report.status == 'processing' for report in reports)
 
     return deps.templates.TemplateResponse(
         request=request,
         name='index.html',
         context={
+            'has_processing': has_processing,
             'grouped_countries': grouped_countries,
             'regulations': regulations,
             'reports': reports,

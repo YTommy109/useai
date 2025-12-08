@@ -3,13 +3,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config import settings
+from src.db.engine import engine
 from src.db.models import Report, ReportStatus
 from src.exceptions import InvalidFilePathError, ResourceNotFoundError
 from src.repositories import ReportRepository
-from src.utils.report_utils import generate_dummy_data
+from src.services.llm_service import LLMService
 
 
 class ReportService:
@@ -19,6 +21,7 @@ class ReportService:
         self,
         repository: ReportRepository,
         session: AsyncSession,
+        llm_service: LLMService | None = None,
         base_dir: str | None = None,
     ) -> None:
         """初期化。
@@ -26,10 +29,12 @@ class ReportService:
         Args:
             repository: レポートリポジトリ。
             session: 非同期データベースセッション。
+            llm_service: LLMサービス。Noneの場合は新規作成。
             base_dir: レポートファイルの保存先ベースディレクトリ。Noneの場合は設定から取得。
         """
         self.repository = repository
         self.session = session
+        self.llm_service = llm_service or LLMService()
         self.base_dir = base_dir or settings.report_base_dir
 
     async def create_report(self, prompt: str) -> Report:
@@ -45,7 +50,7 @@ class ReportService:
         await self.session.commit()
 
         try:
-            self._save_report_files(report.directory_path, prompt)
+            await self._save_report_files(report.directory_path, prompt)
             await self._update_status(report, ReportStatus.COMPLETED)
             await self.session.commit()
         except Exception:
@@ -55,6 +60,71 @@ class ReportService:
             raise
 
         return report
+
+    async def create_report_record(self, prompt: str) -> Report:
+        """レポートレコードを作成する（LLM処理は別途実行）。
+
+        Args:
+            prompt: プロンプト（保存用）。
+
+        Returns:
+            Report: 作成されたレポートレコード。
+        """
+        report = await self._create_report_record()
+        await self.session.commit()
+
+        # prompt.txtを先に保存
+        path = Path(report.directory_path)
+        path.mkdir(parents=True, exist_ok=True)
+        with open(path / 'prompt.txt', 'w', encoding='utf-8') as f:
+            f.write(prompt)
+
+        return report
+
+    async def process_report_async(self, report_id: int, prompt: str) -> None:
+        """レポートのLLM処理を非同期で実行する。
+
+        Args:
+            report_id: レポートID。
+            prompt: プロンプト。
+        """
+        # 新しいセッションを作成
+        session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        async with session_factory() as session:
+            try:
+                # 新しいサービスインスタンスを作成
+                repository = ReportRepository(session)
+                service = ReportService(repository, session, self.llm_service, self.base_dir)
+
+                report = await repository.get_by_id(report_id)
+                if not report:
+                    return
+
+                await self._process_report_with_session(service, report, prompt, session)
+            except Exception:
+                await session.rollback()
+                raise
+
+    async def _process_report_with_session(
+        self, service: 'ReportService', report: Report, prompt: str, session: AsyncSession
+    ) -> None:
+        """セッションを使用してレポートを処理する。
+
+        Args:
+            service: レポートサービス。
+            report: レポート。
+            prompt: プロンプト。
+            session: データベースセッション。
+        """
+        try:
+            await service._save_report_files(report.directory_path, prompt)
+            await service._update_status(report, ReportStatus.COMPLETED)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            await service._update_status(report, ReportStatus.FAILED)
+            await session.commit()
+            raise
 
     async def _create_report_record(self) -> Report:
         """レポートレコードを作成する。
@@ -84,7 +154,7 @@ class ReportService:
         report.status = status
         await self.repository.update(report)
 
-    def _save_report_files(self, directory_path: str, prompt: str) -> None:
+    async def _save_report_files(self, directory_path: str, prompt: str) -> None:
         """レポートファイルを保存する。
 
         Args:
@@ -99,8 +169,8 @@ class ReportService:
         with open(path / 'prompt.txt', 'w', encoding='utf-8') as f:
             f.write(prompt)
 
-        # ダミーデータ生成
-        headers, rows = generate_dummy_data()
+        # LLMからTSVデータを生成
+        headers, rows = await self.llm_service.generate_tsv(prompt)
 
         # result.tsv保存
         with open(path / 'result.tsv', 'w', encoding='utf-8', newline='') as f:

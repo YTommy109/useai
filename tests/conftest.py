@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import httpx
 import pytest
@@ -15,6 +16,7 @@ from src.db.models import Country, Regulation
 from src.dependencies import get_report_service
 from src.main import app
 from src.repositories import ReportRepository
+from src.services.llm_service import LLMService
 from src.services.report_service import ReportService
 
 # Async In-memory SQLite for testing
@@ -58,7 +60,16 @@ async def async_client_fixture(
     def get_report_service_override() -> ReportService:
         """テスト用のReportServiceを返す（tmp_pathを使用）。"""
         repository = ReportRepository(session)
-        return ReportService(repository, session, base_dir=str(tmp_path))
+        # LLMサービスをモック化
+        mock_llm_service = AsyncMock(spec=LLMService)
+        mock_llm_service.generate_tsv.return_value = (
+            ['項目1', '項目2', '項目3'],
+            [
+                ['データ1-1', 'データ1-2', 'データ1-3'],
+                ['データ2-1', 'データ2-2', 'データ2-3'],
+            ],
+        )
+        return ReportService(repository, session, mock_llm_service, base_dir=str(tmp_path))
 
     app.dependency_overrides[get_session] = get_session_override
     app.dependency_overrides[get_report_service] = get_report_service_override
@@ -81,7 +92,16 @@ def client_fixture(session: AsyncSession, tmp_path: Path) -> Generator[TestClien
     def get_report_service_override() -> ReportService:
         """テスト用のReportServiceを返す（tmp_pathを使用）。"""
         repository = ReportRepository(session)
-        return ReportService(repository, session, base_dir=str(tmp_path))
+        # LLMサービスをモック化
+        mock_llm_service = AsyncMock(spec=LLMService)
+        mock_llm_service.generate_tsv.return_value = (
+            ['項目1', '項目2', '項目3'],
+            [
+                ['データ1-1', 'データ1-2', 'データ1-3'],
+                ['データ2-1', 'データ2-2', 'データ2-3'],
+            ],
+        )
+        return ReportService(repository, session, mock_llm_service, base_dir=str(tmp_path))
 
     app.dependency_overrides[get_session] = get_session_override
     app.dependency_overrides[get_report_service] = get_report_service_override

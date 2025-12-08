@@ -37,6 +37,17 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
         f'Configuration: env=.env, log_level={settings.log_level}, sql_echo={settings.sql_echo}'
     )
     logger.info('Database: ***')  # セキュリティのため完全にマスク
+
+    # OpenAI API KEYの検証
+    if not settings.openai_api_key:
+        error_msg = (
+            'OPENAI_API_KEY environment variable is not set. '
+            'Please set it before starting the application.'
+        )
+        logger.error(error_msg)
+        raise BusinessError(error_msg)
+
+    logger.info(f'OpenAI model: {settings.openai_model}')
     yield
     logger.info('Shutting down application...')
 

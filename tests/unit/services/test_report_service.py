@@ -7,6 +7,7 @@ import pytest_mock
 
 from src.db.models import Report, ReportStatus
 from src.exceptions import ResourceNotFoundError
+from src.services.llm_service import LLMService
 from src.services.report_service import ReportService
 
 
@@ -21,8 +22,18 @@ def mock_session() -> AsyncMock:
 
 
 @pytest.fixture
-def service(mock_repo: AsyncMock, mock_session: AsyncMock, tmp_path: Path) -> ReportService:
-    return ReportService(mock_repo, mock_session, base_dir=str(tmp_path))
+def mock_llm_service() -> AsyncMock:
+    return AsyncMock(spec=LLMService)
+
+
+@pytest.fixture
+def service(
+    mock_repo: AsyncMock,
+    mock_session: AsyncMock,
+    mock_llm_service: AsyncMock,
+    tmp_path: Path,
+) -> ReportService:
+    return ReportService(mock_repo, mock_session, mock_llm_service, base_dir=str(tmp_path))
 
 
 @pytest.mark.asyncio
@@ -30,6 +41,7 @@ async def test_レポート作成が成功する(
     service: ReportService,
     mock_repo: AsyncMock,
     mock_session: AsyncMock,
+    mock_llm_service: AsyncMock,
     mocker: pytest_mock.MockerFixture,
     tmp_path: Path,
 ) -> None:
@@ -49,6 +61,12 @@ async def test_レポート作成が成功する(
     mock_repo.create.return_value = mock_report
     mock_repo.update.return_value = mock_report  # updateの戻り値を設定
 
+    # LLMサービスのモック設定
+    mock_llm_service.generate_tsv.return_value = (
+        ['項目1', '項目2'],
+        [['データ1-1', 'データ1-2'], ['データ2-1', 'データ2-2']],
+    )
+
     # テスト対象モジュール内でimportされているものは patch を使用（文字列パス）
     mock_datetime = mocker.patch('src.services.report_service.datetime')
     mock_datetime.now.return_value = datetime(2023, 1, 1, 0, 0, 0)
@@ -65,6 +83,7 @@ async def test_レポート作成が成功する(
     # Assert
     assert result == mock_report
     mock_repo.create.assert_called_once()
+    mock_llm_service.generate_tsv.assert_called_once_with(prompt)
     assert mock_file.call_count >= 2  # prompt.txt and result.tsv
     mock_repo.update.assert_called_once()
     assert mock_repo.update.call_args[0][0].status == ReportStatus.COMPLETED
@@ -111,6 +130,7 @@ async def test_レポート作成時にファイル保存が失敗するとス�
     service: ReportService,
     mock_repo: AsyncMock,
     mock_session: AsyncMock,
+    mock_llm_service: AsyncMock,
     mocker: pytest_mock.MockerFixture,
     tmp_path: Path,
 ) -> None:
@@ -128,13 +148,15 @@ async def test_レポート作成時にファイル保存が失敗するとス�
     mock_repo.create.return_value = mock_report
     mock_repo.update.return_value = mock_report
 
+    # LLMサービスのモック設定（エラーを発生させる）
+    mock_llm_service.generate_tsv.side_effect = OSError('Permission denied')
+
     # テスト対象モジュール内でimportされているものは patch を使用（文字列パス）
     mock_datetime = mocker.patch('src.services.report_service.datetime')
     mock_datetime.now.return_value = datetime(2023, 1, 1, 0, 0, 0)
 
-    # テストファイルでimport済みのクラスは patch.object を使用（オブジェクト参照）
-    mocker.patch.object(Path, 'mkdir', side_effect=OSError('Permission denied'))
-
+    # ディレクトリは実際に作成される（mkdirはモックしない）
+    # LLMサービスのgenerate_tsvが呼ばれた時にエラーを発生させる
     # Act & Assert
     with pytest.raises(OSError, match='Permission denied'):
         await service.create_report(prompt)

@@ -218,8 +218,9 @@ max-statements = 15 # 関数内の文の最大数
     "PLC0415", # import文の位置制限緩和
 ]
 "src/routers/**" = [
-    "ARG001", # 未使用引数許可 (FastAPI dependency injection)
-    "B008",   # Form() in defaults is FastAPI pattern
+    "ARG001",  # 未使用引数許可 (FastAPI dependency injection)
+    "B008",    # Form() in defaults is FastAPI pattern
+    "PLR0913", # 引数が多い (FastAPI dependency injection)
 ]
 "src/logger.py" = [
     "PLC0415", # import文の位置制限緩和

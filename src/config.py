@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     report_base_dir: str = 'data/reports'
     report_preview_limit: int = 100
 
+    # OpenAI設定
+    openai_api_key: str = ''
+    openai_model: str = 'gpt-4o-mini'
+
 
 # グローバル設定インスタンス
 settings = Settings()

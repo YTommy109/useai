@@ -25,8 +25,11 @@
             onclick="document.getElementById('prompt-preview-modal').showModal()">
             プロンプト
         </button>
-        <button id="execute-button" type="submit" class="c-execute-button" hx-post="/reports" {% if not is_executable
-            %}disabled{% endif %}>
+        <button id="execute-button" type="button" class="c-execute-button" hx-post="/reports"
+            hx-include="[name='countries'],[name='regulations']" hx-target="#report-list" hx-swap="outerHTML"
+            hx-indicator="#loading-indicator" 
+            hx-on::after-request="if(event.detail.successful) window.location.href = '/'"
+            {% if not is_executable %}disabled{% endif %}>
             実行
         </button>
     </div>

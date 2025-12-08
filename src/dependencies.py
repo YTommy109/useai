@@ -13,6 +13,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.engine import get_session
 from src.repositories import CountryRepository, RegulationRepository, ReportRepository
 from src.services.country_service import CountryService
+from src.services.llm_service import LLMService
 from src.services.page_service import PageService
 from src.services.regulation_service import RegulationService
 from src.services.report_service import ReportService
@@ -122,7 +123,7 @@ def get_report_service(
     Returns:
         ReportService: レポートサービスインスタンス。
     """
-    return ReportService(ReportRepository(session), session)
+    return ReportService(ReportRepository(session), session, LLMService())
 
 
 def get_page_service(

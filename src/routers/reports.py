@@ -1,6 +1,6 @@
 """レポート関連のルーター。"""
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -17,22 +17,26 @@ router = APIRouter(prefix='/reports', tags=['reports'])
 @router.post('', response_class=HTMLResponse)
 async def create_report(
     request: Request,
+    background_tasks: BackgroundTasks,
     countries: list[str] = Form(default=[]),
     regulations: list[str] = Form(default=[]),
     service: ReportService = Depends(get_report_service),
     templates: Jinja2Templates = Depends(get_templates),
+    repo: ReportRepository = Depends(get_report_repository),
 ) -> HTMLResponse:
     """レポートを作成する。
 
     Args:
         request: FastAPI リクエストオブジェクト。
+        background_tasks: バックグラウンドタスク。
         countries: 選択された国名のリスト。
         regulations: 選択された規制名のリスト。
         service: レポートサービス。
         templates: Jinja2テンプレートインスタンス。
+        repo: レポートリポジトリ。
 
     Returns:
-        HTMLResponse: リダイレクトヘッダー付きのレスポンス。
+        HTMLResponse: レポート一覧を更新したHTMLレスポンス。
     """
     if not countries and not regulations:
         raise ValidationError('国または法規を選択してください')
@@ -40,12 +44,21 @@ async def create_report(
     # プロンプト生成
     prompt = PromptGenerator().generate(countries, regulations)
 
-    await service.create_report(prompt)
+    # レポートレコードを作成（すぐにレスポンスを返す）
+    report = await service.create_report_record(prompt)
 
-    # HTMXでホームページにリダイレクト
-    response = HTMLResponse(content='', status_code=200)
-    response.headers['HX-Redirect'] = '/'
-    return response
+    # LLM処理をバックグラウンドで実行
+    if report.id is not None:
+        background_tasks.add_task(service.process_report_async, report.id, prompt)
+
+    # レポート一覧を取得して返す
+    reports = await repo.get_all_desc()
+    has_processing = any(report.status == 'processing' for report in reports)
+    return templates.TemplateResponse(
+        request=request,
+        name='components/report_list.html',
+        context={'reports': reports, 'has_processing': has_processing},
+    )
 
 
 @router.get('', response_class=HTMLResponse)
@@ -65,10 +78,11 @@ async def get_reports(
         HTMLResponse: レポート一覧。
     """
     reports = await repo.get_all_desc()
+    has_processing = any(report.status == 'processing' for report in reports)
     return templates.TemplateResponse(
         request=request,
         name='components/report_list.html',
-        context={'reports': reports},
+        context={'reports': reports, 'has_processing': has_processing},
     )
 
 

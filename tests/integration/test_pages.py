@@ -1,10 +1,13 @@
+import csv
+from datetime import UTC, datetime
+from pathlib import Path
+
 import pytest
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
-from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import Report
+from src.db.models import Report, ReportStatus
 
 # Fixtures are now in conftest.py
 
@@ -112,22 +115,34 @@ async def test_プロンプトプレビューが表示される(client: TestClie
 
 
 @pytest.mark.asyncio
-async def test_テーブルを生成できる(client: TestClient, session: AsyncSession) -> None:
-    # Arrange - レポートを作成
-    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
-    create_response = client.post('/reports', data=payload)
+async def test_テーブルを生成できる(
+    client: TestClient, session: AsyncSession, tmp_path: Path
+) -> None:
+    # Arrange - completed状態のレポートを直接作成
+    # レポートディレクトリとファイルを作成
+    report_dir = tmp_path / '20230101_000000'
+    report_dir.mkdir(parents=True, exist_ok=True)
 
-    # Assert - リダイレクトヘッダーが返される
-    assert create_response.status_code == 200
-    assert 'HX-Redirect' in create_response.headers
-    assert create_response.headers['HX-Redirect'] == '/'
+    # prompt.txtを作成
+    (report_dir / 'prompt.txt').write_text('Test Prompt', encoding='utf-8')
 
-    # 作成されたレポートIDをデータベースから取得
-    result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
-    reports = list(result.all())
-    assert len(reports) >= 1
-    latest_report = reports[0]  # 最新のレポート（作成日時の降順で最初）
-    report_id = latest_report.id
+    # result.tsvを作成
+    with open(report_dir / 'result.tsv', 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(['項目1', '項目2', '項目3'])
+        writer.writerow(['データ1-1', 'データ1-2', 'データ1-3'])
+        writer.writerow(['データ2-1', 'データ2-2', 'データ2-3'])
+
+    # レポートレコードを作成
+    report = Report(
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+        status=ReportStatus.COMPLETED,
+        directory_path=str(report_dir),
+    )
+    session.add(report)
+    await session.commit()
+    await session.refresh(report)
+    report_id = report.id
     assert report_id is not None
 
     # Act - プレビューを取得
@@ -140,19 +155,35 @@ async def test_テーブルを生成できる(client: TestClient, session: Async
 
 
 @pytest.mark.asyncio
-async def test_CSVダウンロードができる(client: TestClient, session: AsyncSession) -> None:
-    # Arrange - レポートを作成
-    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
-    create_response = client.post('/reports', data=payload)
-    assert create_response.status_code == 200
-    assert 'HX-Redirect' in create_response.headers
+async def test_CSVダウンロードができる(
+    client: TestClient, session: AsyncSession, tmp_path: Path
+) -> None:
+    # Arrange - completed状態のレポートを直接作成
+    # レポートディレクトリとファイルを作成
+    # conftest.pyでbase_dir=str(tmp_path)が設定されているため、tmp_path直下に作成
+    report_dir = tmp_path / '20230101_000000'
+    report_dir.mkdir(parents=True, exist_ok=True)
 
-    # 作成されたレポートIDをデータベースから取得
-    result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
-    reports = list(result.all())
-    assert len(reports) >= 1
-    latest_report = reports[0]  # 最新のレポート（作成日時の降順で最初）
-    report_id = latest_report.id
+    # prompt.txtを作成
+    (report_dir / 'prompt.txt').write_text('Test Prompt', encoding='utf-8')
+
+    # result.tsvを作成
+    with open(report_dir / 'result.tsv', 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(['項目1', '項目2', '項目3'])
+        writer.writerow(['データ1-1', 'データ1-2', 'データ1-3'])
+        writer.writerow(['データ2-1', 'データ2-2', 'データ2-3'])
+
+    # レポートレコードを作成
+    report = Report(
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+        status=ReportStatus.COMPLETED,
+        directory_path=str(report_dir),
+    )
+    session.add(report)
+    await session.commit()
+    await session.refresh(report)
+    report_id = report.id
     assert report_id is not None
 
     # Act
@@ -171,19 +202,35 @@ async def test_CSVダウンロードができる(client: TestClient, session: As
 
 
 @pytest.mark.asyncio
-async def test_Excelダウンロードができる(client: TestClient, session: AsyncSession) -> None:
-    # Arrange - レポートを作成
-    payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
-    create_response = client.post('/reports', data=payload)
-    assert create_response.status_code == 200
-    assert 'HX-Redirect' in create_response.headers
+async def test_Excelダウンロードができる(
+    client: TestClient, session: AsyncSession, tmp_path: Path
+) -> None:
+    # Arrange - completed状態のレポートを直接作成
+    # レポートディレクトリとファイルを作成
+    # conftest.pyでbase_dir=str(tmp_path)が設定されているため、tmp_path直下に作成
+    report_dir = tmp_path / '20230101_000000'
+    report_dir.mkdir(parents=True, exist_ok=True)
 
-    # 作成されたレポートIDをデータベースから取得
-    result = await session.exec(select(Report).order_by(col(Report.created_at).desc()))
-    reports = list(result.all())
-    assert len(reports) >= 1
-    latest_report = reports[0]  # 最新のレポート（作成日時の降順で最初）
-    report_id = latest_report.id
+    # prompt.txtを作成
+    (report_dir / 'prompt.txt').write_text('Test Prompt', encoding='utf-8')
+
+    # result.tsvを作成
+    with open(report_dir / 'result.tsv', 'w', encoding='utf-8', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(['項目1', '項目2', '項目3'])
+        writer.writerow(['データ1-1', 'データ1-2', 'データ1-3'])
+        writer.writerow(['データ2-1', 'データ2-2', 'データ2-3'])
+
+    # レポートレコードを作成
+    report = Report(
+        created_at=datetime.now(UTC).replace(tzinfo=None),
+        status=ReportStatus.COMPLETED,
+        directory_path=str(report_dir),
+    )
+    session.add(report)
+    await session.commit()
+    await session.refresh(report)
+    report_id = report.id
     assert report_id is not None
 
     # Act
