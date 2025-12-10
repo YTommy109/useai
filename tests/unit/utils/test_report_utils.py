@@ -9,116 +9,81 @@ from src.exceptions import ResourceNotFoundError
 from src.utils.report_utils import PromptGenerator
 
 
-class TestPromptGenerator:
-    """PromptGenerator のテストクラス。"""
+@pytest.fixture
+def template_path(tmp_path: Path) -> Path:
+    """テンプレートファイルのパスを返すフィクスチャ。"""
+    return tmp_path / 'template.md'
 
-    def test_テンプレートファイルの読み込みが成功する(
-        self, mocker: pytest_mock.MockerFixture, tmp_path: Path
-    ) -> None:
-        # Arrange
-        template_path = tmp_path / 'template.md'
-        template_content = 'Template content'
-        template_path.write_text(template_content, encoding='utf-8')
 
-        # template_pathをモック
-        mocker.patch.object(PromptGenerator, 'template_path', template_path)
-        generator = PromptGenerator()
+@pytest.fixture
+def generator(mocker: pytest_mock.MockerFixture, template_path: Path) -> PromptGenerator:
+    """PromptGeneratorインスタンスを返すフィクスチャ。"""
+    mocker.patch.object(PromptGenerator, 'template_path', template_path)
+    return PromptGenerator()
 
-        # Act
-        result = generator.load_template()
 
-        # Assert
-        assert result == template_content
+@pytest.mark.asyncio
+async def test_テンプレートファイルの読み込みが成功する(
+    generator: PromptGenerator, template_path: Path
+) -> None:
+    # Arrange
+    template_content = 'Template content'
+    template_path.write_text(template_content, encoding='utf-8')
 
-    def test_テンプレートファイルが存在しない場合にResourceNotFoundErrorを発生させる(
-        self, mocker: pytest_mock.MockerFixture, tmp_path: Path
-    ) -> None:
-        # Arrange
-        template_path = tmp_path / 'nonexistent.md'
-        # template_pathをモック
-        mocker.patch.object(PromptGenerator, 'template_path', template_path)
-        generator = PromptGenerator()
+    # Act
+    result = generator.load_template()
 
-        # Act & Assert
-        with pytest.raises(ResourceNotFoundError, match='Prompt template file not found'):
-            generator.load_template()
+    # Assert
+    assert result == template_content
 
-    def test_プロンプト生成が成功する(
-        self, mocker: pytest_mock.MockerFixture, tmp_path: Path
-    ) -> None:
-        # Arrange
-        template_content = 'Countries:\n${COUNTRY}\n\nRegulations:\n${REGULATION}'
-        template_path = tmp_path / 'template.md'
-        template_path.write_text(template_content, encoding='utf-8')
 
-        # template_pathをモック
-        mocker.patch.object(PromptGenerator, 'template_path', template_path)
-        generator = PromptGenerator()
-        countries = ['Japan', 'USA']
-        regulations = ['GDPR', 'CCPA']
+@pytest.mark.asyncio
+async def test_テンプレートファイルが存在しない場合にResourceNotFoundErrorを発生させる(
+    generator: PromptGenerator, template_path: Path
+) -> None:
+    # Arrange
+    # template_pathは存在しない
 
-        # Act
-        result = generator.generate(countries, regulations)
+    # Act & Assert
+    with pytest.raises(ResourceNotFoundError, match='Prompt template file not found'):
+        generator.load_template()
 
-        # Assert
-        expected = 'Countries:\nJapan\nUSA\n\nRegulations:\nGDPR\nCCPA'
-        assert result == expected
 
-    def test_空のリストでプロンプト生成が成功する(
-        self, mocker: pytest_mock.MockerFixture, tmp_path: Path
-    ) -> None:
-        # Arrange
-        template_content = 'Countries:\n${COUNTRY}\n\nRegulations:\n${REGULATION}'
-        template_path = tmp_path / 'template.md'
-        template_path.write_text(template_content, encoding='utf-8')
+@pytest.mark.asyncio
+async def test_プロンプト名を取得できる(generator: PromptGenerator, template_path: Path) -> None:
+    # Arrange
+    template_path.write_text('Template content', encoding='utf-8')
 
-        # template_pathをモック
-        mocker.patch.object(PromptGenerator, 'template_path', template_path)
-        generator = PromptGenerator()
+    # Act
+    result = generator.get_name()
 
-        # Act
-        result = generator.generate([], [])
+    # Assert
+    assert result == 'template'
 
-        # Assert
-        expected = 'Countries:\n\n\nRegulations:\n'
-        assert result == expected
 
-    def test_国のみでプロンプト生成が成功する(
-        self, mocker: pytest_mock.MockerFixture, tmp_path: Path
-    ) -> None:
-        # Arrange
-        template_content = 'Countries:\n${COUNTRY}\n\nRegulations:\n${REGULATION}'
-        template_path = tmp_path / 'template.md'
-        template_path.write_text(template_content, encoding='utf-8')
+@pytest.mark.parametrize(
+    ('countries', 'regulations', 'expected'),
+    [
+        (['Japan', 'USA'], ['GDPR', 'CCPA'], 'Countries:\nJapan\nUSA\n\nRegulations:\nGDPR\nCCPA'),
+        ([], [], 'Countries:\n\n\nRegulations:\n'),
+        (['Japan', 'USA'], [], 'Countries:\nJapan\nUSA\n\nRegulations:\n'),
+        ([], ['GDPR', 'CCPA'], 'Countries:\n\n\nRegulations:\nGDPR\nCCPA'),
+    ],
+)
+@pytest.mark.asyncio
+async def test_プロンプト生成が成功する(
+    generator: PromptGenerator,
+    template_path: Path,
+    countries: list[str],
+    regulations: list[str],
+    expected: str,
+) -> None:
+    # Arrange
+    template_content = 'Countries:\n${COUNTRY}\n\nRegulations:\n${REGULATION}'
+    template_path.write_text(template_content, encoding='utf-8')
 
-        # template_pathをモック
-        mocker.patch.object(PromptGenerator, 'template_path', template_path)
-        generator = PromptGenerator()
-        countries = ['Japan', 'USA']
+    # Act
+    result = generator.generate(countries, regulations)
 
-        # Act
-        result = generator.generate(countries, [])
-
-        # Assert
-        expected = 'Countries:\nJapan\nUSA\n\nRegulations:\n'
-        assert result == expected
-
-    def test_規制のみでプロンプト生成が成功する(
-        self, mocker: pytest_mock.MockerFixture, tmp_path: Path
-    ) -> None:
-        # Arrange
-        template_content = 'Countries:\n${COUNTRY}\n\nRegulations:\n${REGULATION}'
-        template_path = tmp_path / 'template.md'
-        template_path.write_text(template_content, encoding='utf-8')
-
-        # template_pathをモック
-        mocker.patch.object(PromptGenerator, 'template_path', template_path)
-        generator = PromptGenerator()
-        regulations = ['GDPR', 'CCPA']
-
-        # Act
-        result = generator.generate([], regulations)
-
-        # Assert
-        expected = 'Countries:\n\n\nRegulations:\nGDPR\nCCPA'
-        assert result == expected
+    # Assert
+    assert result == expected

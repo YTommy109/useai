@@ -42,10 +42,12 @@ async def create_report(
         raise ValidationError('国または法規を選択してください')
 
     # プロンプト生成
-    prompt = PromptGenerator().generate(countries, regulations)
+    prompt_generator = PromptGenerator()
+    prompt = prompt_generator.generate(countries, regulations)
+    prompt_name = prompt_generator.get_name()
 
     # レポートレコードを作成（すぐにレスポンスを返す）
-    report = await service.create_report_record(prompt)
+    report = await service.create_report_record(prompt, prompt_name)
 
     # LLM処理をバックグラウンドで実行
     if report.id is not None:

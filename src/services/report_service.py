@@ -37,16 +37,17 @@ class ReportService:
         self.llm_service = llm_service or LLMService()
         self.base_dir = base_dir or settings.report_base_dir
 
-    async def create_report_record(self, prompt: str) -> Report:
+    async def create_report_record(self, prompt: str, prompt_name: str | None = None) -> Report:
         """レポートレコードを作成する（LLM処理は別途実行）。
 
         Args:
             prompt: プロンプト（保存用）。
+            prompt_name: プロンプト名。
 
         Returns:
             Report: 作成されたレポートレコード。
         """
-        report = await self._create_report_record()
+        report = await self._create_report_record(prompt_name)
         await self.session.commit()
 
         # prompt.txtを先に保存
@@ -102,8 +103,11 @@ class ReportService:
             await session.commit()
             raise
 
-    async def _create_report_record(self) -> Report:
+    async def _create_report_record(self, prompt_name: str | None = None) -> Report:
         """レポートレコードを作成する。
+
+        Args:
+            prompt_name: プロンプト名。
 
         Returns:
             Report: 作成されたレポートレコード。
@@ -122,6 +126,7 @@ class ReportService:
             created_at=now_utc.replace(tzinfo=None),
             status=ReportStatus.PROCESSING,
             directory_path=directory_path,
+            prompt_name=prompt_name,
         )
         return await self.repository.create(report)
 

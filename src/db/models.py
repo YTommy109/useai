@@ -52,12 +52,14 @@ class Report(SQLModel, table=True):
         created_at: 作成日時（UTC）。
         status: ステータス（processing, completed, failed）。
         directory_path: 保存先ディレクトリパス。
+        prompt_name: 使用したプロンプト名。
     """
 
     id: int | None = Field(default=None, primary_key=True)
     created_at: datetime = Field(sa_column=Column(DateTime, nullable=False))
     status: ReportStatus
     directory_path: str
+    prompt_name: str | None = Field(default=None)
 
     @property
     def created_at_jst(self) -> datetime:

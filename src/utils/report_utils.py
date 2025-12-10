@@ -20,6 +20,14 @@ class PromptGenerator:
     _project_root = _current_file.parent.parent.parent
     template_path: Path = _project_root / 'data' / 'prompt' / 'prompt_1_1.md'
 
+    def get_name(self) -> str:
+        """プロンプト名を取得する。
+
+        Returns:
+            str: プロンプト名（拡張子なし）。
+        """
+        return self.template_path.stem
+
     def load_template(self) -> str:
         """テンプレートファイルを読み込む。
 
