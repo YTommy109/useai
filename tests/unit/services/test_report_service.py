@@ -113,10 +113,10 @@ async def test_レポートレコードを作成できる(
     assert result == mock_report
     mock_repo.create.assert_called_once()
     mock_session.commit.assert_called_once()
-    # prompt.txtが保存されていることを確認
+    # prompt_1_1.mdが保存されていることを確認
     report_dir = Path(mock_report.directory_path)
-    assert (report_dir / 'prompt.txt').exists()
-    assert (report_dir / 'prompt.txt').read_text(encoding='utf-8') == prompt
+    assert (report_dir / 'prompt_1_1.md').exists()
+    assert (report_dir / 'prompt_1_1.md').read_text(encoding='utf-8') == prompt
 
 
 @pytest.mark.asyncio

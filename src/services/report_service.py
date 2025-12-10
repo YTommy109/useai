@@ -50,10 +50,11 @@ class ReportService:
         report = await self._create_report_record(prompt_name)
         await self.session.commit()
 
-        # prompt.txtを先に保存
+        # プロンプトファイルを先に保存
         path = Path(report.directory_path)
         path.mkdir(parents=True, exist_ok=True)
-        with open(path / 'prompt.txt', 'w', encoding='utf-8') as f:
+        prompt_filename = self._get_prompt_filename(prompt_name)
+        with open(path / prompt_filename, 'w', encoding='utf-8') as f:
             f.write(prompt)
 
         return report
@@ -94,7 +95,7 @@ class ReportService:
             session: データベースセッション。
         """
         try:
-            await service._save_report_files(report.directory_path, prompt)
+            await service._save_report_files(report.directory_path, prompt, report.prompt_name)
             await service._update_status(report, ReportStatus.COMPLETED)
             await session.commit()
         except Exception:
@@ -135,35 +136,41 @@ class ReportService:
         report.status = status
         await self.repository.update(report)
 
-    async def _save_report_files(self, directory_path: str, prompt: str) -> None:
+    async def _save_report_files(
+        self, directory_path: str, prompt: str, prompt_name: str | None = None
+    ) -> None:
         """レポートファイルを保存する。
 
         Args:
             directory_path: 保存先ディレクトリパス。
             prompt: プロンプト。
+            prompt_name: プロンプト名。
         """
         # ディレクトリ作成
         path = Path(directory_path)
         path.mkdir(parents=True, exist_ok=True)
 
-        # prompt.txt保存
-        with open(path / 'prompt.txt', 'w', encoding='utf-8') as f:
+        # プロンプトファイル保存
+        prompt_filename = self._get_prompt_filename(prompt_name)
+        with open(path / prompt_filename, 'w', encoding='utf-8') as f:
             f.write(prompt)
 
         # LLMからTSVデータを生成
         headers, rows = await self.llm_service.generate_tsv(prompt)
 
-        # result.tsv保存
-        with open(path / 'result.tsv', 'w', encoding='utf-8', newline='') as f:
+        # 結果TSVファイル保存
+        result_filename = self._get_result_filename(prompt_name)
+        with open(path / result_filename, 'w', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, delimiter='\t')
             writer.writerow(headers)
             writer.writerows(rows)
 
-    def _validate_report_path(self, report_dir: str) -> Path:
+    def _validate_report_path(self, report_dir: str, prompt_name: str | None = None) -> Path:
         """レポートディレクトリのパスを検証する。
 
         Args:
             report_dir: レポートディレクトリパス。
+            prompt_name: プロンプト名。
 
         Returns:
             Path: 検証済みのresult.tsvファイルパス。
@@ -173,12 +180,51 @@ class ReportService:
         """
         base_path = Path(self.base_dir).resolve()
         report_dir_path = Path(report_dir).resolve()
-        result_path = (report_dir_path / 'result.tsv').resolve()
+        result_filename = self._get_result_filename(prompt_name)
+        result_path = (report_dir_path / result_filename).resolve()
 
         if not str(result_path).startswith(str(base_path)):
             raise InvalidFilePathError(report_dir)
 
         return result_path
+
+    def _get_prompt_filename(self, prompt_name: str | None) -> str:
+        """プロンプトファイル名を取得する。
+
+        Args:
+            prompt_name: プロンプト名。
+
+        Returns:
+            str: プロンプトファイル名。
+        """
+        if prompt_name:
+            # プロンプト名から末尾の番号を抽出（例: prompt_1_1 -> _1_1）
+            # プロンプト名が prompt_1_1 の場合、prompt_ を除いた部分を取得
+            if prompt_name.startswith('prompt_'):
+                suffix = prompt_name[len('prompt_') :]
+                return f'prompt_{suffix}.md'
+            # プロンプト名が prompt_ で始まらない場合も考慮
+            return f'{prompt_name}.md'
+        return 'prompt.txt'
+
+    def _get_result_filename(self, prompt_name: str | None) -> str:
+        """結果TSVファイル名を取得する。
+
+        Args:
+            prompt_name: プロンプト名。
+
+        Returns:
+            str: 結果TSVファイル名。
+        """
+        if prompt_name:
+            # プロンプト名から末尾の番号を抽出（例: prompt_1_1 -> _1_1）
+            # プロンプト名が prompt_1_1 の場合、prompt_ を除いた部分を取得
+            if prompt_name.startswith('prompt_'):
+                suffix = prompt_name[len('prompt_') :]
+                return f'result_{suffix}.tsv'
+            # プロンプト名が prompt_ で始まらない場合も考慮
+            return f'result_{prompt_name}.tsv'
+        return 'result.tsv'
 
     def _read_tsv_file(self, result_path: Path) -> tuple[list[str], list[list[str]]]:
         """TSVファイルを読み込む。
@@ -216,5 +262,5 @@ class ReportService:
         if not report:
             raise ResourceNotFoundError(resource_name='Report', resource_id=str(report_id))
 
-        result_path = self._validate_report_path(report.directory_path)
+        result_path = self._validate_report_path(report.directory_path, report.prompt_name)
         return self._read_tsv_file(result_path)
