@@ -2,110 +2,124 @@
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo useai ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆåˆæœŸåŒ–ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
+echo useai ƒvƒƒWƒFƒNƒg‰Šú‰»ƒXƒNƒŠƒvƒg
 echo ========================================
 echo.
 
-REM Pythonã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒã‚§ãƒƒã‚¯
-echo [0/6] ç’°å¢ƒã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã„ã¾ã™...
+REM Python‚Ìƒo[ƒWƒ‡ƒ“ƒ`ƒFƒbƒN
+echo [0/6] ŠÂ‹«‚ðƒ`ƒFƒbƒN‚µ‚Ä‚¢‚Ü‚·...
 python --version >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo ã‚¨ãƒ©ãƒ¼: PythonãŒã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ã¾ã›ã‚“
-    echo Python 3.12ä»¥ä¸Šã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ãã ã•ã„
+    echo ƒGƒ‰[: Python‚ªƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ
+    echo Python 3.12ˆÈã‚ðƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚­‚¾‚³‚¢
     pause
     exit /b 1
 )
 
-REM Pythonãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®å–å¾—ã¨ç¢ºèª
+REM Pythonƒo[ƒWƒ‡ƒ“‚ÌŽæ“¾‚ÆŠm”F
 for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
-echo Pythonãƒãƒ¼ã‚¸ãƒ§ãƒ³: %PYTHON_VERSION%
+echo Pythonƒo[ƒWƒ‡ƒ“: %PYTHON_VERSION%
 
-REM ãƒãƒ¼ã‚¸ãƒ§ãƒ³ç•ªå·ã®æŠ½å‡ºï¼ˆ3.12.0 -> 3.12ï¼‰
+REM ƒo[ƒWƒ‡ƒ“”Ô†‚Ì’Šoi3.12.0 -> 3.12j
 for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
     set MAJOR=%%a
     set MINOR=%%b
 )
 
 if %MAJOR% LSS 3 (
-    echo ã‚¨ãƒ©ãƒ¼: Python 3.12ä»¥ä¸ŠãŒå¿…è¦ã§ã™ï¼ˆç¾åœ¨: %PYTHON_VERSION%ï¼‰
+    echo ƒGƒ‰[: Python 3.12ˆÈã‚ª•K—v‚Å‚·iŒ»Ý: %PYTHON_VERSION%j
     pause
     exit /b 1
 )
 if %MAJOR% EQU 3 if %MINOR% LSS 12 (
-    echo ã‚¨ãƒ©ãƒ¼: Python 3.12ä»¥ä¸ŠãŒå¿…è¦ã§ã™ï¼ˆç¾åœ¨: %PYTHON_VERSION%ï¼‰
+    echo ƒGƒ‰[: Python 3.12ˆÈã‚ª•K—v‚Å‚·iŒ»Ý: %PYTHON_VERSION%j
     pause
     exit /b 1
 )
 echo.
 
-REM 1. uvã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ç¢ºèªã¨ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
-echo [1/6] uvã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ã„ã¾ã™...
+REM 1. uv‚ÌƒCƒ“ƒXƒg[ƒ‹Šm”F‚ÆƒCƒ“ƒXƒg[ƒ‹
+echo [1/6] uv‚ðƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚¢‚Ü‚·...
 pip install uv
 if %ERRORLEVEL% neq 0 (
-    echo ã‚¨ãƒ©ãƒ¼: uvã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸ
+    echo ƒGƒ‰[: uv‚ÌƒCƒ“ƒXƒg[ƒ‹‚ÉŽ¸”s‚µ‚Ü‚µ‚½
     pause
     exit /b 1
 )
 echo.
 
-REM 2. ä»®æƒ³ç’°å¢ƒã®ä½œæˆ
-echo [2/6] ä»®æƒ³ç’°å¢ƒã‚’ä½œæˆã—ã¦ã„ã¾ã™...
+REM 2. ‰¼‘zŠÂ‹«‚Ìì¬
+echo [2/6] ‰¼‘zŠÂ‹«‚ðì¬‚µ‚Ä‚¢‚Ü‚·...
 if exist .venv (
-    echo æ—¢å­˜ã®ä»®æƒ³ç’°å¢ƒãŒè¦‹ã¤ã‹ã‚Šã¾ã—ãŸã€‚ã‚¹ã‚­ãƒƒãƒ—ã—ã¾ã™ã€‚
+    echo Šù‘¶‚Ì‰¼‘zŠÂ‹«‚ªŒ©‚Â‚©‚è‚Ü‚µ‚½BƒXƒLƒbƒv‚µ‚Ü‚·B
 ) else (
     uv venv -p 3.12
     if %ERRORLEVEL% neq 0 (
-        echo ã‚¨ãƒ©ãƒ¼: ä»®æƒ³ç’°å¢ƒã®ä½œæˆã«å¤±æ•—ã—ã¾ã—ãŸ
+        echo ƒGƒ‰[: ‰¼‘zŠÂ‹«‚Ìì¬‚ÉŽ¸”s‚µ‚Ü‚µ‚½
         pause
         exit /b 1
     )
 )
 echo.
 
-REM 3. ä¾å­˜é–¢ä¿‚ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
-echo [3/6] ä¾å­˜é–¢ä¿‚ã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦ã„ã¾ã™...
+REM 3. ˆË‘¶ŠÖŒW‚ÌƒCƒ“ƒXƒg[ƒ‹
+echo [3/6] ˆË‘¶ŠÖŒW‚ðƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä‚¢‚Ü‚·...
 uv sync
 if %ERRORLEVEL% neq 0 (
-    echo ã‚¨ãƒ©ãƒ¼: ä¾å­˜é–¢ä¿‚ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã«å¤±æ•—ã—ã¾ã—ãŸ
+    echo ƒGƒ‰[: ˆË‘¶ŠÖŒW‚ÌƒCƒ“ƒXƒg[ƒ‹‚ÉŽ¸”s‚µ‚Ü‚µ‚½
     pause
     exit /b 1
 )
 echo.
 
-REM 4. ãƒ‡ãƒ¼ã‚¿ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä½œæˆ
-echo [4/6] ãƒ‡ãƒ¼ã‚¿ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œæˆã—ã¦ã„ã¾ã™...
+REM 4. ƒf[ƒ^ƒfƒBƒŒƒNƒgƒŠ‚Ìì¬
+echo [4/7] ƒf[ƒ^ƒfƒBƒŒƒNƒgƒŠ‚ðì¬‚µ‚Ä‚¢‚Ü‚·...
 if not exist data mkdir data
 echo.
 
-REM 5. ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã‚¢ã‚»ãƒƒãƒˆã®ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰
-echo [5/6] ãƒ•ãƒ­ãƒ³ãƒˆã‚¨ãƒ³ãƒ‰ã‚¢ã‚»ãƒƒãƒˆã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—ã¦ã„ã¾ã™...
+REM 5. Ý’èƒtƒ@ƒCƒ‹‚ÌƒRƒs[
+echo [5/7] Ý’èƒtƒ@ƒCƒ‹‚ðƒRƒs[‚µ‚Ä‚¢‚Ü‚·...
+if not exist data\csv (
+    xcopy /E /I /Y config\csv.example data\csv
+) else (
+    echo data\csv ƒfƒBƒŒƒNƒgƒŠ‚ªŠù‚É‘¶Ý‚µ‚Ü‚·BƒXƒLƒbƒv‚µ‚Ü‚·B
+)
+if not exist data\prompt (
+    xcopy /E /I /Y config\prompt.example data\prompt
+) else (
+    echo data\prompt ƒfƒBƒŒƒNƒgƒŠ‚ªŠù‚É‘¶Ý‚µ‚Ü‚·BƒXƒLƒbƒv‚µ‚Ü‚·B
+)
+echo.
+
+REM 6. ƒtƒƒ“ƒgƒGƒ“ƒhƒAƒZƒbƒg‚Ìƒ_ƒEƒ“ƒ[ƒh
+echo [6/7] ƒtƒƒ“ƒgƒGƒ“ƒhƒAƒZƒbƒg‚ðƒ_ƒEƒ“ƒ[ƒh‚µ‚Ä‚¢‚Ü‚·...
 uv run python scripts\download_assets.py
 if %ERRORLEVEL% neq 0 (
-    echo ã‚¨ãƒ©ãƒ¼: ã‚¢ã‚»ãƒƒãƒˆã®ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã«å¤±æ•—ã—ã¾ã—ãŸ
+    echo ƒGƒ‰[: ƒAƒZƒbƒg‚Ìƒ_ƒEƒ“ƒ[ƒh‚ÉŽ¸”s‚µ‚Ü‚µ‚½
     pause
     exit /b 1
 )
 echo.
 
-REM 6. ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ãƒžã‚¤ã‚°ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³
-echo [6/6] ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã‚’åˆæœŸåŒ–ã—ã¦ã„ã¾ã™...
+REM 7. ƒf[ƒ^ƒx[ƒXƒ}ƒCƒOƒŒ[ƒVƒ‡ƒ“
+echo [7/7] ƒf[ƒ^ƒx[ƒX‚ð‰Šú‰»‚µ‚Ä‚¢‚Ü‚·...
 uv run alembic upgrade head
 if %ERRORLEVEL% neq 0 (
-    echo ã‚¨ãƒ©ãƒ¼: ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ãƒžã‚¤ã‚°ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã«å¤±æ•—ã—ã¾ã—ãŸ
+    echo ƒGƒ‰[: ƒf[ƒ^ƒx[ƒXƒ}ƒCƒOƒŒ[ƒVƒ‡ƒ“‚ÉŽ¸”s‚µ‚Ü‚µ‚½
     pause
     exit /b 1
 )
 echo.
 
 echo ========================================
-echo ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ãŒå®Œäº†ã—ã¾ã—ãŸï¼
+echo ƒZƒbƒgƒAƒbƒv‚ªŠ®—¹‚µ‚Ü‚µ‚½I
 echo ========================================
 echo.
-echo æ¬¡ã®ã‚³ãƒžãƒ³ãƒ‰ã§ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã‚’èµ·å‹•ã§ãã¾ã™ï¼š
+echo ŽŸ‚ÌƒRƒ}ƒ“ƒh‚ÅƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ð‹N“®‚Å‚«‚Ü‚·F
 echo   .venv\Scripts\activate
 echo   task prod
 echo.
-echo ã¾ãŸã¯ã€ä»®æƒ³ç’°å¢ƒã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ™ãƒ¼ãƒˆã›ãšã«å®Ÿè¡Œï¼š
+echo ‚Ü‚½‚ÍA‰¼‘zŠÂ‹«‚ðƒAƒNƒeƒBƒx[ƒg‚¹‚¸‚ÉŽÀsF
 echo   uv run task prod
 echo.
 pause

@@ -47,17 +47,31 @@ uv sync
 echo ""
 
 # 4. データディレクトリの作成
-echo "[4/6] データディレクトリを作成しています..."
+echo "[4/7] データディレクトリを作成しています..."
 mkdir -p data
 echo ""
 
-# 5. フロントエンドアセットのダウンロード
-echo "[5/6] フロントエンドアセットをダウンロードしています..."
+# 5. 設定ファイルのコピー
+echo "[5/7] 設定ファイルをコピーしています..."
+if [ ! -d "data/csv" ]; then
+    cp -r config/csv.example data/csv
+else
+    echo "data/csv ディレクトリが既に存在します。スキップします。"
+fi
+if [ ! -d "data/prompt" ]; then
+    cp -r config/prompt.example data/prompt
+else
+    echo "data/prompt ディレクトリが既に存在します。スキップします。"
+fi
+echo ""
+
+# 6. フロントエンドアセットのダウンロード
+echo "[6/7] フロントエンドアセットをダウンロードしています..."
 uv run python scripts/download_assets.py
 echo ""
 
-# 6. データベースマイグレーション
-echo "[6/6] データベースを初期化しています..."
+# 7. データベースマイグレーション
+echo "[7/7] データベースを初期化しています..."
 uv run alembic upgrade head
 echo ""
 
