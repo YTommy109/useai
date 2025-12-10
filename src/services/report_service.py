@@ -37,30 +37,6 @@ class ReportService:
         self.llm_service = llm_service or LLMService()
         self.base_dir = base_dir or settings.report_base_dir
 
-    async def create_report(self, prompt: str) -> Report:
-        """レポートを作成する。
-
-        Args:
-            prompt: プロンプト。
-
-        Returns:
-            Report: 作成されたレポート。
-        """
-        report = await self._create_report_record()
-        await self.session.commit()
-
-        try:
-            await self._save_report_files(report.directory_path, prompt)
-            await self._update_status(report, ReportStatus.COMPLETED)
-            await self.session.commit()
-        except Exception:
-            await self.session.rollback()
-            await self._update_status(report, ReportStatus.FAILED)
-            await self.session.commit()
-            raise
-
-        return report
-
     async def create_report_record(self, prompt: str) -> Report:
         """レポートレコードを作成する（LLM処理は別途実行）。
 

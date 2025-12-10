@@ -30,10 +30,10 @@ class LLMService:
         """
         self.api_key = api_key or settings.openai_api_key
         self.model = model or settings.openai_model
-        client_kwargs: dict[str, str] = {'api_key': self.api_key}
         if settings.openai_api_base:
-            client_kwargs['base_url'] = settings.openai_api_base
-        self.client = AsyncOpenAI(**client_kwargs)
+            self.client = AsyncOpenAI(api_key=self.api_key, base_url=settings.openai_api_base)
+        else:
+            self.client = AsyncOpenAI(api_key=self.api_key)
 
     async def generate_tsv(self, prompt: str) -> tuple[list[str], list[list[str]]]:
         """プロンプトを使用してLLMからTSVデータを生成する。
