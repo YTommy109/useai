@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
     # OpenAI設定
     openai_api_key: str = ''
+    openai_api_base: str | None = None
     openai_model: str = 'gpt-4o-mini'
 
 
