@@ -1,7 +1,6 @@
 import csv
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -13,7 +12,6 @@ from src.db.models import Report, ReportStatus
 from src.exceptions import InvalidFilePathError, ResourceNotFoundError
 from src.repositories import ReportRepository
 from src.services.llm_service import LLMService
-from src.utils.report_utils import PromptGenerator
 
 
 class ReportService:
@@ -97,21 +95,8 @@ class ReportService:
             session: データベースセッション。
         """
         try:
-            # 各プロンプトの結果を保存し、プロンプト情報のリストを取得
-            prompt_results = await service._save_report_files(
-                report.directory_path, prompt, report.prompt_name
-            )
-
-            # 最初のレポートを完了状態に更新
+            await service._save_report_files(report.directory_path, prompt, report.prompt_name)
             await service._update_status(report, ReportStatus.COMPLETED)
-
-            # 2つ目以降のプロンプト毎にレポートレコードを作成
-            for prompt_result in prompt_results[1:]:
-                new_report = await service._create_report_record_for_prompt(
-                    report.directory_path, prompt_result['prompt_name']
-                )
-                await service._update_status(new_report, ReportStatus.COMPLETED)
-
             await session.commit()
         except Exception:
             await session.rollback()
@@ -146,31 +131,6 @@ class ReportService:
         )
         return await self.repository.create(report)
 
-    async def _create_report_record_for_prompt(
-        self, directory_path: str, prompt_name: str
-    ) -> Report:
-        """既存のディレクトリパスを使用してプロンプト用のレポートレコードを作成する。
-
-        Args:
-            directory_path: 既存のディレクトリパス。
-            prompt_name: プロンプト名。
-
-        Returns:
-            Report: 作成されたレポートレコード。
-        """
-        # UTC時刻を取得
-        now_utc = datetime.now(UTC)
-
-        # データベースにはタイムゾーン情報なしのUTC時刻を保存
-        # （SQLiteはタイムゾーン情報を保持しないため、UTC時刻として扱う）
-        report = Report(
-            created_at=now_utc.replace(tzinfo=None),
-            status=ReportStatus.PROCESSING,
-            directory_path=directory_path,
-            prompt_name=prompt_name,
-        )
-        return await self.repository.create(report)
-
     async def _update_status(self, report: Report, status: ReportStatus) -> None:
         """レポートのステータスを更新する。"""
         report.status = status
@@ -178,139 +138,32 @@ class ReportService:
 
     async def _save_report_files(
         self, directory_path: str, prompt: str, prompt_name: str | None = None
-    ) -> list[dict[str, Any]]:
+    ) -> None:
         """レポートファイルを保存する。
 
         Args:
             directory_path: 保存先ディレクトリパス。
-            prompt: 最初のプロンプト。
+            prompt: プロンプト。
             prompt_name: プロンプト名。
-
-        Returns:
-            list[dict]: 各プロンプトの結果情報のリスト。
-                各要素は prompt_name, headers, rows を含む。
         """
         # ディレクトリ作成
         path = Path(directory_path)
         path.mkdir(parents=True, exist_ok=True)
 
-        # プロンプトジェネレーターを作成
-        prompt_generator = PromptGenerator()
-        prompt_files = prompt_generator.get_all_prompt_files()
-
-        if not prompt_files:
-            raise ResourceNotFoundError('Prompt template file', 'data/prompt')
-
-        prompt_results = []
-
-        # 最初のプロンプトを保存して実行
-        headers, rows = await self._process_first_prompt(path, prompt, prompt_name)
-        prompt_results.append(
-            {
-                'prompt_name': prompt_name or prompt_files[0].stem,
-                'headers': headers,
-                'rows': rows,
-            }
-        )
-        # 最初の結果TSVファイル保存
-        self._save_result_file(path, prompt_files[0], headers, rows)
-
-        # 2つ目以降のプロンプトを順番に実行
-        subsequent_results = await self._process_subsequent_prompts(
-            prompt_generator, prompt_files[1:], path, headers, rows
-        )
-        prompt_results.extend(subsequent_results)
-
-        return prompt_results
-
-    async def _process_first_prompt(
-        self, path: Path, prompt: str, prompt_name: str | None
-    ) -> tuple[list[str], list[list[str]]]:
-        """最初のプロンプトを保存して実行する。
-
-        Args:
-            path: 保存先ディレクトリパス。
-            prompt: 最初のプロンプト。
-            prompt_name: プロンプト名。
-
-        Returns:
-            tuple[list[str], list[list[str]]]: 実行結果（ヘッダーと行データ）。
-        """
-        first_prompt_filename = self._get_prompt_filename(prompt_name)
-        with open(path / first_prompt_filename, 'w', encoding='utf-8') as f:
+        # プロンプトファイル保存
+        prompt_filename = self._get_prompt_filename(prompt_name)
+        with open(path / prompt_filename, 'w', encoding='utf-8') as f:
             f.write(prompt)
 
-        return await self.llm_service.generate_tsv(prompt)
+        # LLMからTSVデータを生成
+        headers, rows = await self.llm_service.generate_tsv(prompt)
 
-    def _save_result_file(
-        self, path: Path, last_prompt_file: Path, headers: list[str], rows: list[list[str]]
-    ) -> None:
-        """最後の結果TSVファイルを保存する。
-
-        Args:
-            path: 保存先ディレクトリパス。
-            last_prompt_file: 最後のプロンプトファイル。
-            headers: ヘッダー行。
-            rows: データ行のリスト。
-        """
-        result_filename = self._get_result_filename(last_prompt_file.stem)
+        # 結果TSVファイル保存
+        result_filename = self._get_result_filename(prompt_name)
         with open(path / result_filename, 'w', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, delimiter='\t')
             writer.writerow(headers)
             writer.writerows(rows)
-
-    async def _process_subsequent_prompts(
-        self,
-        prompt_generator: PromptGenerator,
-        prompt_files: list[Path],
-        path: Path,
-        headers: list[str],
-        rows: list[list[str]],
-    ) -> list[dict[str, Any]]:
-        """2つ目以降のプロンプトを順番に実行する。
-
-        Args:
-            prompt_generator: プロンプトジェネレーター。
-            prompt_files: プロンプトファイルのリスト。
-            path: 保存先ディレクトリパス。
-            headers: 現在のヘッダー行。
-            rows: 現在のデータ行のリスト。
-
-        Returns:
-            list[dict]: 各プロンプトの結果情報のリスト。
-                各要素は prompt_name, headers, rows を含む。
-        """
-        current_headers = headers
-        current_rows = rows
-        prompt_results = []
-
-        for prompt_file in prompt_files:
-            # 前の結果をTSV形式の文字列に変換
-            previous_result = PromptGenerator.format_tsv_result(current_headers, current_rows)
-
-            # 次のプロンプトを生成
-            current_prompt = prompt_generator.generate_next_prompt(prompt_file, previous_result)
-
-            # プロンプトファイルを保存
-            prompt_filename = self._get_prompt_filename(prompt_file.stem)
-            with open(path / prompt_filename, 'w', encoding='utf-8') as f:
-                f.write(current_prompt)
-
-            # LLMからTSVデータを生成
-            current_headers, current_rows = await self.llm_service.generate_tsv(current_prompt)
-
-            # 結果を保存
-            prompt_results.append(
-                {
-                    'prompt_name': prompt_file.stem,
-                    'headers': current_headers,
-                    'rows': current_rows,
-                }
-            )
-            # 結果TSVファイル保存
-            self._save_result_file(path, prompt_file, current_headers, current_rows)
-
-        return prompt_results
 
     def _validate_report_path(self, report_dir: str, prompt_name: str | None = None) -> Path:
         """レポートディレクトリのパスを検証する。

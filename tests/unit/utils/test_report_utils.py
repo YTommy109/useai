@@ -18,9 +18,7 @@ def template_path(tmp_path: Path) -> Path:
 @pytest.fixture
 def generator(mocker: pytest_mock.MockerFixture, template_path: Path) -> PromptGenerator:
     """PromptGeneratorインスタンスを返すフィクスチャ。"""
-    prompt_dir = template_path.parent
-    prompt_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch.object(PromptGenerator, '_prompt_dir', prompt_dir)
+    mocker.patch.object(PromptGenerator, 'template_path', template_path)
     return PromptGenerator()
 
 
@@ -33,7 +31,7 @@ async def test_テンプレートファイルの読み込みが成功する(
     template_path.write_text(template_content, encoding='utf-8')
 
     # Act
-    result = generator.load_template(template_path)
+    result = generator.load_template()
 
     # Assert
     assert result == template_content
@@ -48,7 +46,7 @@ async def test_テンプレートファイルが存在しない場合にResource
 
     # Act & Assert
     with pytest.raises(ResourceNotFoundError, match='Prompt template file not found'):
-        generator.load_template(template_path)
+        generator.load_template()
 
 
 @pytest.mark.asyncio
@@ -85,7 +83,7 @@ async def test_プロンプト生成が成功する(
     template_path.write_text(template_content, encoding='utf-8')
 
     # Act
-    result = generator.generate_first_prompt(countries, regulations)
+    result = generator.generate(countries, regulations)
 
     # Assert
     assert result == expected

@@ -43,7 +43,7 @@ async def create_report(
 
     # プロンプト生成
     prompt_generator = PromptGenerator()
-    prompt = prompt_generator.generate_first_prompt(countries, regulations)
+    prompt = prompt_generator.generate(countries, regulations)
     prompt_name = prompt_generator.get_name()
 
     # レポートレコードを作成（すぐにレスポンスを返す）
