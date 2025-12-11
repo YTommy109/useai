@@ -88,11 +88,11 @@ async def validation_error_handler(
     if request.headers.get('HX-Request'):
         return HTMLResponse(
             content=f'<div style="color: red;">入力エラー: {exc}</div>',
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={'error': str(exc)},
     )
 

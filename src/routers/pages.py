@@ -189,7 +189,7 @@ async def preview_prompt(
     Returns:
         HTMLResponse: プロンプトプレビューのHTML。
     """
-    prompt_html = markdown.markdown(PromptGenerator().generate(countries, regulations))
+    prompt_html = markdown.markdown(PromptGenerator().generate_first_prompt(countries, regulations))
 
     return deps.templates.TemplateResponse(
         request=request,
