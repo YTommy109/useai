@@ -16,17 +16,20 @@ FastAPIとHTMXを使用した軽量AIウェブアプリケーション
 ### Windows
 
 1. リポジトリをクローン：
+
 ```cmd
 git clone <repository-url>
 cd useai
 ```
 
-2. セットアップスクリプトを実行：
+1. セットアップスクリプトを実行：
+
 ```cmd
 setup.bat
 ```
 
 **開発環境の場合:**
+
 ```cmd
 REM 1. uvのインストール
 pip install uv
@@ -50,18 +53,21 @@ task migrate-apply
 ### Linux / macOS
 
 1. リポジトリをクローン：
+
 ```bash
 git clone <repository-url>
 cd useai
 ```
 
-2. セットアップスクリプトを実行：
+1. セットアップスクリプトを実行：
+
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
 
 **開発環境の場合:**
+
 ```bash
 # 1. uvのインストール
 pip3 install uv
@@ -98,11 +104,12 @@ task prod
 ```
 
 または、仮想環境をアクティベートせずに実行：
+
 ```bash
 uv run task prod
 ```
 
-ブラウザで http://localhost:8000 にアクセスしてください。
+ブラウザで <http://localhost:8000> にアクセスしてください。
 
 ### 開発サーバーの起動
 
@@ -166,23 +173,32 @@ task migrate-downgrade
 
 ## プロジェクト構造
 
-```
+```text
 useai/
 ├── src/                    # アプリケーションソースコード
 │   ├── db/                 # データベース関連
 │   │   ├── models.py       # SQLModelモデル
-│   │   ├── repository.py   # リポジトリパターン
-│   │   └── service.py      # ビジネスロジック
+│   │   ├── engine.py       # データベースエンジン設定
+│   │   └── schema.py       # スキーマ定義
+│   ├── repositories/       # リポジトリパターン
+│   ├── services/           # ビジネスロジック
+│   ├── usecases/           # ユースケース層
 │   ├── routers/            # FastAPIルーター
 │   ├── templates/          # Jinja2テンプレート
-│   │   └── components/     # 再利用可能なコンポーネント
+│   │   ├── components/     # 再利用可能なコンポーネント
+│   │   ├── layout/         # レイアウトテンプレート
+│   │   └── macros/         # マクロ定義
+│   ├── utils/              # ユーティリティ関数
 │   └── main.py             # アプリケーションエントリーポイント
 ├── tests/                  # テストコード
 │   ├── unit/               # 単体テスト
-│   └── integration/        # 統合テスト
+│   ├── integration/        # 統合テスト
+│   └── e2e/                # E2Eテスト
 ├── migrations/             # Alembicマイグレーション
 ├── static/                 # 静的ファイル（CSS、JS）
 ├── data/                   # データファイル（SQLite DB、CSV）
+├── config/                 # 設定ファイル（CSV、プロンプトテンプレート）
+├── scripts/                # ユーティリティスクリプト
 ├── setup.bat               # Windowsセットアップスクリプト
 ├── setup.sh                # Linux/macOSセットアップスクリプト
 └── pyproject.toml          # プロジェクト設定
@@ -200,4 +216,3 @@ useai/
 ## ライセンス
 
 このプロジェクトはMITライセンスの下で公開されています。詳細は [LICENSE](LICENSE) ファイルを参照してください。
-
