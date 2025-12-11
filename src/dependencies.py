@@ -4,42 +4,26 @@
 依存性注入するための関数を提供します。
 """
 
-from datetime import datetime
-
-from fastapi import Depends
+from fastapi import BackgroundTasks, Depends
 from fastapi.templating import Jinja2Templates
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.db.engine import get_session
 from src.repositories import CountryRepository, RegulationRepository, ReportRepository
 from src.services.country_service import CountryService
+from src.services.export_service import ExportService
 from src.services.llm_service import LLMService
 from src.services.page_service import PageService
+from src.services.prompt_service import PromptService
 from src.services.regulation_service import RegulationService
 from src.services.report_service import ReportService
-
-
-def datetimeformat(value: datetime) -> str:
-    """datetimeオブジェクトを読みやすい形式に変換する。
-
-    Args:
-        value: 変換するdatetimeオブジェクト。
-
-    Returns:
-        str: フォーマットされた日時文字列。
-    """
-    return value.strftime('%Y/%m/%d %H:%M:%S')
-
-
-def get_templates() -> Jinja2Templates:
-    """Jinja2テンプレートインスタンスを取得する。
-
-    Returns:
-        Jinja2Templates: テンプレートインスタンス。
-    """
-    templates = Jinja2Templates(directory='src/templates')
-    templates.env.filters['datetimeformat'] = datetimeformat
-    return templates
+from src.usecases import (
+    CreateReportUseCase,
+    DownloadReportUseCase,
+    GetReportsUseCase,
+    PreviewPromptUseCase,
+)
+from src.utils.template_utils import get_templates
 
 
 def get_country_repository(
@@ -176,3 +160,85 @@ def get_page_dependencies(
         PageDependencies: ページ表示に必要な依存性。
     """
     return PageDependencies(page_service, templates)
+
+
+def get_export_service() -> ExportService:
+    """エクスポートサービスを取得する。
+
+    Returns:
+        ExportService: エクスポートサービスインスタンス。
+    """
+    return ExportService()
+
+
+def get_prompt_service() -> PromptService:
+    """プロンプトサービスを取得する。
+
+    Returns:
+        PromptService: プロンプトサービスインスタンス。
+    """
+    return PromptService()
+
+
+def get_create_report_usecase(
+    background_tasks: BackgroundTasks,
+    report_service: ReportService = Depends(get_report_service),
+    report_repository: ReportRepository = Depends(get_report_repository),
+    prompt_service: PromptService = Depends(get_prompt_service),
+) -> CreateReportUseCase:
+    """レポート作成ユースケースを取得する。
+
+    Args:
+        background_tasks: バックグラウンドタスク。
+        report_service: レポートサービス。
+        report_repository: レポートリポジトリ。
+        prompt_service: プロンプトサービス。
+
+    Returns:
+        CreateReportUseCase: レポート作成ユースケースインスタンス。
+    """
+    return CreateReportUseCase(report_service, report_repository, prompt_service, background_tasks)
+
+
+def get_get_reports_usecase(
+    report_repository: ReportRepository = Depends(get_report_repository),
+) -> GetReportsUseCase:
+    """レポート一覧取得ユースケースを取得する。
+
+    Args:
+        report_repository: レポートリポジトリ。
+
+    Returns:
+        GetReportsUseCase: レポート一覧取得ユースケースインスタンス。
+    """
+    return GetReportsUseCase(report_repository)
+
+
+def get_preview_prompt_usecase(
+    prompt_service: PromptService = Depends(get_prompt_service),
+) -> PreviewPromptUseCase:
+    """プロンプトプレビューユースケースを取得する。
+
+    Args:
+        prompt_service: プロンプトサービス。
+
+    Returns:
+        PreviewPromptUseCase: プロンプトプレビューユースケースインスタンス。
+    """
+    return PreviewPromptUseCase(prompt_service)
+
+
+def get_download_report_usecase(
+    report_service: ReportService = Depends(get_report_service),
+    export_service: ExportService = Depends(get_export_service),
+) -> DownloadReportUseCase:
+    """レポートダウンロードユースケースを取得する。
+
+    Args:
+        report_service: レポートサービス。
+        export_service: エクスポートサービス。
+
+    Returns:
+        DownloadReportUseCase: レポートダウンロードユースケースインスタンス。
+    """
+    return DownloadReportUseCase(report_service, export_service)

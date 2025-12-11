@@ -1,15 +1,18 @@
 """レポート関連のルーター。"""
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from src.config import settings
-from src.dependencies import get_report_repository, get_report_service, get_templates
-from src.exceptions import ValidationError
-from src.repositories import ReportRepository
+from src.dependencies import (
+    get_create_report_usecase,
+    get_get_reports_usecase,
+    get_report_service,
+    get_templates,
+)
 from src.services.report_service import ReportService
-from src.utils.report_utils import PromptGenerator
+from src.usecases import CreateReportUseCase, GetReportsUseCase
 
 router = APIRouter(prefix='/reports', tags=['reports'])
 
@@ -17,45 +20,25 @@ router = APIRouter(prefix='/reports', tags=['reports'])
 @router.post('', response_class=HTMLResponse)
 async def create_report(
     request: Request,
-    background_tasks: BackgroundTasks,
     countries: list[str] = Form(default=[]),
     regulations: list[str] = Form(default=[]),
-    service: ReportService = Depends(get_report_service),
+    usecase: CreateReportUseCase = Depends(get_create_report_usecase),
     templates: Jinja2Templates = Depends(get_templates),
-    repo: ReportRepository = Depends(get_report_repository),
 ) -> HTMLResponse:
     """レポートを作成する。
 
     Args:
         request: FastAPI リクエストオブジェクト。
-        background_tasks: バックグラウンドタスク。
         countries: 選択された国名のリスト。
         regulations: 選択された規制名のリスト。
-        service: レポートサービス。
+        usecase: レポート作成ユースケース。
         templates: Jinja2テンプレートインスタンス。
-        repo: レポートリポジトリ。
 
     Returns:
         HTMLResponse: レポート一覧を更新したHTMLレスポンス。
     """
-    if not countries and not regulations:
-        raise ValidationError('国または法規を選択してください')
+    reports, has_processing = await usecase.execute(countries, regulations)
 
-    # プロンプト生成
-    prompt_generator = PromptGenerator()
-    prompt = prompt_generator.generate(countries, regulations)
-    prompt_name = prompt_generator.get_name()
-
-    # レポートレコードを作成（すぐにレスポンスを返す）
-    report = await service.create_report_record(prompt, prompt_name)
-
-    # LLM処理をバックグラウンドで実行
-    if report.id is not None:
-        background_tasks.add_task(service.process_report_async, report.id, prompt)
-
-    # レポート一覧を取得して返す
-    reports = await repo.get_all_desc()
-    has_processing = any(report.status == 'processing' for report in reports)
     return templates.TemplateResponse(
         request=request,
         name='components/report_list.html',
@@ -66,21 +49,21 @@ async def create_report(
 @router.get('', response_class=HTMLResponse)
 async def get_reports(
     request: Request,
-    repo: ReportRepository = Depends(get_report_repository),
+    usecase: GetReportsUseCase = Depends(get_get_reports_usecase),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
     """レポート一覧を取得する。
 
     Args:
         request: FastAPI リクエストオブジェクト。
-        repo: レポートリポジトリ。
+        usecase: レポート一覧取得ユースケース。
         templates: Jinja2テンプレートインスタンス。
 
     Returns:
         HTMLResponse: レポート一覧。
     """
-    reports = await repo.get_all_desc()
-    has_processing = any(report.status == 'processing' for report in reports)
+    reports, has_processing = await usecase.execute()
+
     return templates.TemplateResponse(
         request=request,
         name='components/report_list.html',

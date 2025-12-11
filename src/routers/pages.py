@@ -1,66 +1,23 @@
 """ページ表示に関連するルーター。"""
 
-import csv
-import io
-
-import markdown
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
-from openpyxl import Workbook
 
-from src.dependencies import PageDependencies, get_page_dependencies, get_report_service
+from src.dependencies import (
+    PageDependencies,
+    get_download_report_usecase,
+    get_get_reports_usecase,
+    get_page_dependencies,
+    get_preview_prompt_usecase,
+)
 from src.exceptions import ResourceNotFoundError
-from src.services.report_service import ReportService
-from src.utils.report_utils import PromptGenerator
+from src.usecases import (
+    DownloadReportUseCase,
+    GetReportsUseCase,
+    PreviewPromptUseCase,
+)
 
 router = APIRouter()
-
-
-async def _get_report_data(
-    report_id: int,
-    service: ReportService = Depends(get_report_service),
-) -> tuple[list[str], list[list[str]]]:
-    """レポートデータを取得する。
-
-    Args:
-        report_id: レポートID。
-        service: レポートサービス。
-
-    Returns:
-        tuple[list[str], list[list[str]]]: ヘッダーと行データのタプル。
-
-    Raises:
-        HTTPException: レポートが見つからない場合。
-    """
-    try:
-        return await service.get_report_content(report_id)
-    except ResourceNotFoundError as err:
-        raise HTTPException(status_code=404, detail='Report not found') from err
-
-
-def _create_excel_file(headers: list[str], rows: list[list[str]]) -> io.BytesIO:
-    """Excelファイルを作成する。
-
-    Args:
-        headers: ヘッダー行。
-        rows: データ行のリスト。
-
-    Returns:
-        io.BytesIO: Excelファイルのバイトストリーム。
-    """
-    wb = Workbook()
-    ws = wb.active
-    assert ws is not None  # type narrowing
-    ws.title = '生成結果'
-
-    ws.append(headers)
-    for row in rows:
-        ws.append(row)
-
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    return output
 
 
 @router.get('/main_interface', response_class=HTMLResponse)
@@ -145,18 +102,20 @@ async def update_main_interface(
 async def read_root(
     request: Request,
     deps: PageDependencies = Depends(get_page_dependencies),
+    get_reports_usecase: GetReportsUseCase = Depends(get_get_reports_usecase),
 ) -> HTMLResponse:
     """国と規制を含むメインページをレンダリングする。
 
     Args:
         request: FastAPI リクエストオブジェクト。
         deps: ページ表示に必要な依存性。
+        get_reports_usecase: レポート一覧取得ユースケース。
 
     Returns:
         HTMLResponse: 国と規制を含むレンダリングされたインデックスページ。
     """
-    grouped_countries, regulations, reports = await deps.page_service.get_main_page_data()
-    has_processing = any(report.status == 'processing' for report in reports)
+    grouped_countries, regulations, _ = await deps.page_service.get_main_page_data()
+    reports, has_processing = await get_reports_usecase.execute()
 
     return deps.templates.TemplateResponse(
         request=request,
@@ -177,6 +136,7 @@ async def preview_prompt(
     countries: list[str] = Form(default=[]),
     regulations: list[str] = Form(default=[]),
     deps: PageDependencies = Depends(get_page_dependencies),
+    usecase: PreviewPromptUseCase = Depends(get_preview_prompt_usecase),
 ) -> HTMLResponse:
     """選択された国と規制に基づいてプロンプトのプレビューを返す。
 
@@ -185,19 +145,22 @@ async def preview_prompt(
         countries: 選択された国名のリスト。
         regulations: 選択された規制名のリスト。
         deps: ページ表示に必要な依存性。
+        usecase: プロンプトプレビューユースケース。
 
     Returns:
         HTMLResponse: プロンプトプレビューのHTML。
     """
-    prompt_html = markdown.markdown(PromptGenerator().generate(countries, regulations))
+    prompt_html, selected_countries, selected_regulations = await usecase.execute(
+        countries, regulations
+    )
 
     return deps.templates.TemplateResponse(
         request=request,
         name='components/prompt_preview.html',
         context={
             'prompt_html': prompt_html,
-            'selected_countries': countries,
-            'selected_regulations': regulations,
+            'selected_countries': selected_countries,
+            'selected_regulations': selected_regulations,
         },
     )
 
@@ -240,13 +203,13 @@ async def generate_document(
 @router.get('/reports/{report_id}/download_csv')
 async def download_csv(
     report_id: int,
-    service: ReportService = Depends(get_report_service),
+    usecase: DownloadReportUseCase = Depends(get_download_report_usecase),
 ) -> StreamingResponse:
     """レポートデータをCSV形式でダウンロードする。
 
     Args:
         report_id: レポートID。
-        service: レポートサービス。
+        usecase: レポートダウンロードユースケース。
 
     Returns:
         StreamingResponse: CSV形式のファイル。
@@ -254,30 +217,27 @@ async def download_csv(
     Raises:
         HTTPException: レポートが見つからない場合。
     """
-    headers, rows = await _get_report_data(report_id, service)
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(headers)
-    writer.writerows(rows)
-
-    return StreamingResponse(
-        iter([output.getvalue()]),
-        media_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename=result.csv'},
-    )
+    try:
+        output = await usecase.create_csv(report_id)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=result.csv'},
+        )
+    except ResourceNotFoundError as err:
+        raise HTTPException(status_code=404, detail='Report not found') from err
 
 
 @router.get('/reports/{report_id}/download_excel')
 async def download_excel(
     report_id: int,
-    service: ReportService = Depends(get_report_service),
+    usecase: DownloadReportUseCase = Depends(get_download_report_usecase),
 ) -> StreamingResponse:
     """レポートデータをExcel形式でダウンロードする。
 
     Args:
         report_id: レポートID。
-        service: レポートサービス。
+        usecase: レポートダウンロードユースケース。
 
     Returns:
         StreamingResponse: Excel形式のファイル。
@@ -285,11 +245,12 @@ async def download_excel(
     Raises:
         HTTPException: レポートが見つからない場合。
     """
-    headers, rows = await _get_report_data(report_id, service)
-    output = _create_excel_file(headers, rows)
-
-    return StreamingResponse(
-        output,
-        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        headers={'Content-Disposition': 'attachment; filename=result.xlsx'},
-    )
+    try:
+        output = await usecase.create_excel(report_id)
+        return StreamingResponse(
+            output,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': 'attachment; filename=result.xlsx'},
+        )
+    except ResourceNotFoundError as err:
+        raise HTTPException(status_code=404, detail='Report not found') from err
