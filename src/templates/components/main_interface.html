@@ -1,8 +1,13 @@
 {% from "macros/scrollable_box.html" import scrollable_box %}
 
-<form hx-post="/update_main_interface"
-    hx-trigger="change from:input[name='countries'], change from:input[name='regulations']" hx-target="#dynamic-area"
-    hx-swap="innerHTML" hx-indicator="#loading-indicator" id="report-form">
+<form id="report-form" _="on change
+       set countryChecked to <input[name='countries']:checked/> in me
+       set regulationChecked to <input[name='regulations']:checked/> in me
+       if countryChecked.length > 0 or regulationChecked.length > 0
+         remove @disabled from #execute-button
+       else
+         add @disabled to #execute-button
+       end">
     <!-- 入力エリア -->
     <div class="grid">
         <!-- 国選択 -->
@@ -27,9 +32,8 @@
         </button>
         <button id="execute-button" type="button" class="c-execute-button" hx-post="/reports"
             hx-include="[name='countries'],[name='regulations']" hx-target="#report-list" hx-swap="outerHTML"
-            hx-indicator="#loading-indicator" 
-            hx-on::after-request="if(event.detail.successful) window.location.href = '/'"
-            {% if not is_executable %}disabled{% endif %}>
+            hx-indicator="#loading-indicator"
+            hx-on::after-request="if(event.detail.successful) window.location.href = '/'" disabled>
             実行
         </button>
     </div>

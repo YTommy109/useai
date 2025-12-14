@@ -43,7 +43,6 @@ async def get_main_interface(
             'grouped_countries': grouped_countries,
             'regulations': regulations,
             'reports': reports,
-            'is_executable': False,  # 初期状態では無効、JavaScriptで制御
         },
     )
 
@@ -63,39 +62,6 @@ async def new_report(
         RedirectResponse: ホームページへのリダイレクト。
     """
     return RedirectResponse(url='/', status_code=302)
-
-
-@router.post('/update_main_interface', response_class=HTMLResponse)
-async def update_main_interface(
-    request: Request,
-    countries: list[str] = Form(default=[]),
-    regulations: list[str] = Form(default=[]),
-    deps: PageDependencies = Depends(get_page_dependencies),
-) -> HTMLResponse:
-    """選択状態に応じて新規作成インターフェースを更新する。
-
-    Args:
-        request: FastAPI リクエストオブジェクト。
-        countries: 選択された国名のリスト。
-        regulations: 選択された規制名のリスト。
-        deps: ページ表示に必要な依存性。
-
-    Returns:
-        HTMLResponse: 更新された新規作成インターフェース。
-    """
-    grouped_countries, all_regulations, _ = await deps.page_service.get_main_page_data()
-
-    return deps.templates.TemplateResponse(
-        request=request,
-        name='components/main_interface.html',
-        context={
-            'grouped_countries': grouped_countries,
-            'regulations': all_regulations,
-            'selected_countries': countries,
-            'selected_regulations': regulations,
-            'is_executable': bool(countries or regulations),
-        },
-    )
 
 
 @router.get('/', response_class=HTMLResponse)
@@ -194,7 +160,6 @@ async def generate_document(
             'regulations': all_regulations,
             'selected_countries': countries,
             'selected_regulations': regulations,
-            'is_executable': bool(countries or regulations),
             'reports': reports,
         },
     )

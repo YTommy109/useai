@@ -17,6 +17,10 @@ ASSETS = [
         'url': 'https://unpkg.com/htmx.org@2.0.8/dist/htmx.min.js',
         'path': 'static/vendor/js/htmx.min.js',
     },
+    {
+        'url': 'https://unpkg.com/hyperscript.org@0.9.14',
+        'path': 'static/vendor/js/hyperscript.min.js',
+    },
 ]
 
 
