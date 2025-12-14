@@ -136,9 +136,23 @@ table {
     justify-content: center;
 }
 
+.c-refresh-button.loading img {
+    animation: c-refresh-spin 1s linear infinite;
+    opacity: 0.8;
+}
+
 .c-refresh-button svg {
     width: 1rem;
     height: 1rem;
+}
+
+@keyframes c-refresh-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* 新規作成ボタン */
@@ -171,6 +185,10 @@ table {
     top: 0;
     background-color: var(--pico-background-color);
     z-index: 1;
+}
+
+.is-hidden {
+    display: none;
 }
 
 /* ステータスバッジ */

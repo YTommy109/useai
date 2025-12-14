@@ -26,14 +26,14 @@
     <!-- ボタン部 -->
     <div class="c-button-group u-mt-1">
         <button type="button" class="c-prompt-button" hx-post="/preview_prompt"
-            hx-include="[name='countries'],[name='regulations']" hx-target="#modal-prompt-content" hx-swap="innerHTML"
-            onclick="document.getElementById('prompt-preview-modal').showModal()">
+            hx-include="[name='countries'],[name='regulations']" hx-target="#modal-prompt-content" hx-swap="innerHTML">
             プロンプト
         </button>
         <button id="execute-button" type="button" class="c-execute-button" hx-post="/reports"
             hx-include="[name='countries'],[name='regulations']" hx-target="#report-list" hx-swap="outerHTML"
-            hx-indicator="#loading-indicator"
-            hx-on::after-request="if(event.detail.successful) window.location.href = '/'" disabled>
+            hx-indicator="#loading-indicator" _="on htmx:afterRequest from me
+               if event.detail.successful
+                 go to url '/'" disabled>
             実行
         </button>
     </div>
