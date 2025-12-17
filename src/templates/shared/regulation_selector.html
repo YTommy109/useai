@@ -1,0 +1,7 @@
+{% for regulation in regulations %}
+<label for="regulation-{{ loop.index }}">
+    <input type="checkbox" id="regulation-{{ loop.index }}" name="regulations" value="{{ regulation }}"
+        {% if regulation in selected_regulations %}checked{% endif %}>
+    {{ regulation }}
+</label>
+{% endfor %}

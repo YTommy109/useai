@@ -12,12 +12,12 @@
     <div class="grid">
         <!-- 国選択 -->
         {% call scrollable_box(title="国を選択", show_loading=True) %}
-        {% include "components/country_selector.html" %}
+        {% include "shared/country_selector.html" with context %}
         {% endcall %}
 
         <!-- 法規選択 -->
         {% call scrollable_box(title="法規を選択") %}
-        {% include "components/regulation_selector.html" %}
+        {% include "shared/regulation_selector.html" with context %}
         {% endcall %}
     </div>
 

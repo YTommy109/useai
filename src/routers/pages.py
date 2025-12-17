@@ -38,7 +38,7 @@ async def get_main_interface(
 
     return deps.templates.TemplateResponse(
         request=request,
-        name='components/main_interface.html',
+        name='widgets/main_interface.html',
         context={
             'grouped_countries': grouped_countries,
             'regulations': regulations,
@@ -122,7 +122,7 @@ async def preview_prompt(
 
     return deps.templates.TemplateResponse(
         request=request,
-        name='components/prompt_preview.html',
+        name='widgets/prompt_preview.html',
         context={
             'prompt_html': prompt_html,
             'selected_countries': selected_countries,
@@ -154,7 +154,7 @@ async def generate_document(
 
     return deps.templates.TemplateResponse(
         request=request,
-        name='components/main_interface.html',
+        name='widgets/main_interface.html',
         context={
             'grouped_countries': grouped_countries,
             'regulations': all_regulations,

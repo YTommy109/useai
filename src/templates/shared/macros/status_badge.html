@@ -1,0 +1,6 @@
+{# ステータスバッジを描画するマクロ #}
+{% macro status_badge(status) -%}
+<span class="c-status-badge c-status-badge--{{ status }}">
+    {{ status }}
+</span>
+{%- endmacro %}

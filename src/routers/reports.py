@@ -41,7 +41,7 @@ async def create_report(
 
     return templates.TemplateResponse(
         request=request,
-        name='components/report_list.html',
+        name='widgets/report_list.html',
         context={'reports': reports, 'has_processing': has_processing},
     )
 
@@ -66,7 +66,7 @@ async def get_reports(
 
     return templates.TemplateResponse(
         request=request,
-        name='components/report_list.html',
+        name='widgets/report_list.html',
         context={'reports': reports, 'has_processing': has_processing},
     )
 
@@ -101,7 +101,7 @@ async def preview_report(
     if table_only:
         return templates.TemplateResponse(
             request=request,
-            name='components/report_table.html',
+            name='widgets/report_table.html',
             context={
                 'report_id': report_id,
                 'headers': headers,
@@ -113,6 +113,6 @@ async def preview_report(
     # 完全なプレビューページ
     return templates.TemplateResponse(
         request=request,
-        name='components/report_preview.html',
+        name='widgets/report_preview.html',
         context={'report_id': report_id, 'headers': headers, 'rows': rows},
     )

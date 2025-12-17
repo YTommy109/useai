@@ -1,3 +1,5 @@
+{% from "shared/macros/status_badge.html" import status_badge %}
+
 <article id="report-list" class="c-report-list">
     <div class="c-report-header">
         <h4 class="u-m-0">レポート履歴</h4>
@@ -36,9 +38,7 @@
                     <td>{{ report.prompt_name or '-' }}</td>
                     <td>{{ report.created_at_jst | datetimeformat }}</td>
                     <td>
-                        <span class="c-status-badge c-status-badge--{{ report.status }}">
-                            {{ report.status }}
-                        </span>
+                        {{ status_badge(report.status) }}
                     </td>
                     <td>
                         {% if report.status == 'completed' %}

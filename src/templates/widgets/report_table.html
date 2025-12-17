@@ -1,0 +1,8 @@
+{% from "shared/macros/table.html" import render_table %}
+
+<h3>レポート #{{ report_id }}</h3>
+{{ render_table(headers, rows, limit=preview_limit) }}
+
+{% if rows|length > preview_limit %}
+<p><small>※ 最初の{{ preview_limit }}行のみ表示しています。すべてのデータを確認するにはダウンロードしてください。</small></p>
+{% endif %}

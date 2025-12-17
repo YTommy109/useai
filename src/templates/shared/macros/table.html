@@ -1,0 +1,23 @@
+{# 汎用テーブルレンダリングマクロ #}
+{% macro render_table(headers, rows, sticky_header=False, limit=None, nowrap=False) -%}
+<div class="u-overflow-x-auto">
+    <table class="striped u-m-0">
+        <thead class="{{ 'c-table-sticky-header' if sticky_header else '' }}">
+            <tr>
+                {% for header in headers %}
+                <th scope="col" class="{{ 'u-nowrap' if nowrap else '' }}">{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows if not limit else rows[:limit] %}
+            <tr>
+                {% for cell in row %}
+                <td class="{{ 'u-nowrap' if nowrap else '' }}">{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{%- endmacro %}
