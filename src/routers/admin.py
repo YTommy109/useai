@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -13,7 +13,6 @@ from src.dependencies import (
     get_regulation_service,
     get_templates,
 )
-from src.exceptions import ResourceNotFoundError
 from src.repositories import CountryRepository, RegulationRepository
 from src.services.country_service import CountryService
 from src.services.regulation_service import RegulationService
@@ -53,7 +52,7 @@ async def admin_dashboard(
     )
 
 
-@router.post('/import/countries', response_class=HTMLResponse)
+@router.post('/countries/import', response_class=HTMLResponse)
 async def import_countries(
     service: CountryService = Depends(get_country_service),
 ) -> HTMLResponse:
@@ -72,10 +71,10 @@ async def import_countries(
         count = await service.import_from_csv(Path('data/csv/countries.csv'))
         return HTMLResponse(str(count))
     except FileNotFoundError as err:
-        raise ResourceNotFoundError('CSV file', 'data/csv/countries.csv') from err
+        raise HTTPException(status_code=404, detail='CSV file not found') from err
 
 
-@router.post('/import/regulations', response_class=HTMLResponse)
+@router.post('/regulations/import', response_class=HTMLResponse)
 async def import_regulations(
     service: RegulationService = Depends(get_regulation_service),
 ) -> HTMLResponse:
@@ -94,4 +93,4 @@ async def import_regulations(
         count = await service.import_from_csv(Path('data/csv/regulations.csv'))
         return HTMLResponse(str(count))
     except FileNotFoundError as err:
-        raise ResourceNotFoundError('CSV file', 'data/csv/regulations.csv') from err
+        raise HTTPException(status_code=404, detail='CSV file not found') from err

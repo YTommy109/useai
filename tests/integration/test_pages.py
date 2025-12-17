@@ -42,7 +42,7 @@ async def test_ドキュメント生成_選択項目が反映される(
     payload = {'countries': countries, 'regulations': regulations}
 
     # Act
-    response = client.post('/generate_document', data=payload)
+    response = client.post('/reports/new/interface', data=payload)
 
     # Assert
     assert response.status_code == 200
@@ -56,7 +56,7 @@ async def test_プロンプトプレビューが表示される(client: TestClie
     payload = {'countries': ['Test Country A'], 'regulations': ['Test Regulation 1']}
 
     # Act
-    response = client.post('/preview_prompt', data=payload)
+    response = client.post('/reports/prompt/preview', data=payload)
 
     # Assert
     assert response.status_code == 200
@@ -179,7 +179,7 @@ async def test_存在しないレポートへのアクセスは404(
 @pytest.mark.asyncio
 async def test_main_interfaceエンドポイントが動作する(client: TestClient) -> None:
     # Act
-    response = client.get('/main_interface')
+    response = client.get('/reports/new')
 
     # Assert
     assert response.status_code == 200

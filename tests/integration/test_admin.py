@@ -48,7 +48,7 @@ async def test_国データをインポートできる(
     try:
         os.chdir(tmp_path)
         # Act
-        response = client.post('/admin/import/countries')
+        response = client.post('/admin/countries/import')
     finally:
         os.chdir(original_cwd)
 
@@ -80,7 +80,7 @@ async def test_規制データをインポートできる(
     try:
         os.chdir(tmp_path)
         # Act
-        response = client.post('/admin/import/regulations')
+        response = client.post('/admin/regulations/import')
     finally:
         os.chdir(original_cwd)
 
@@ -99,7 +99,7 @@ async def test_規制データをインポートできる(
 
 @pytest.mark.parametrize(
     'endpoint',
-    ['/admin/import/countries', '/admin/import/regulations'],
+    ['/admin/countries/import', '/admin/regulations/import'],
 )
 @pytest.mark.asyncio
 async def test_インポート_ファイルが存在しない場合404(
@@ -122,8 +122,8 @@ async def test_インポート_ファイルが存在しない場合404(
 @pytest.mark.parametrize(
     ('endpoint', 'filename', 'model_class', 'header'),
     [
-        ('/admin/import/countries', 'countries.csv', Country, 'name,continent\n'),
-        ('/admin/import/regulations', 'regulations.csv', Regulation, 'name\n'),
+        ('/admin/countries/import', 'countries.csv', Country, 'name,continent\n'),
+        ('/admin/regulations/import', 'regulations.csv', Regulation, 'name\n'),
     ],
 )
 @pytest.mark.asyncio

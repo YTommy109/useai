@@ -30,7 +30,7 @@
                 <td>国 (Countries)</td>
                 <td><strong id="country-count">{{ country_count }}</strong></td>
                 <td>
-                    <button hx-post="/admin/import/countries" hx-target="#country-count" hx-swap="innerHTML"
+                    <button hx-post="/admin/countries/import" hx-target="#country-count" hx-swap="innerHTML"
                         class="outline">
                         更新
                     </button>
@@ -40,7 +40,7 @@
                 <td>法規 (Regulations)</td>
                 <td><strong id="regulation-count">{{ regulation_count }}</strong></td>
                 <td>
-                    <button hx-post="/admin/import/regulations" hx-target="#regulation-count" hx-swap="innerHTML"
+                    <button hx-post="/admin/regulations/import" hx-target="#regulation-count" hx-swap="innerHTML"
                         class="outline">
                         更新
                     </button>

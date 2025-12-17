@@ -10,7 +10,9 @@
             </tr>
         </thead>
         <tbody>
-            {% for row in rows if not limit else rows[:limit] %}
+            {# limit が指定されている場合は先頭 limit 件に絞る #}
+            {% set display_rows = rows[:limit] if limit else rows %}
+            {% for row in display_rows %}
             <tr>
                 {% for cell in row %}
                 <td class="{{ 'u-nowrap' if nowrap else '' }}">{{ cell }}</td>
